@@ -10,11 +10,15 @@
     "preview": "vite preview",
     "format": "prettier --write .",
     "format-check": "prettier --check .",
+    "lint": "eslint . --fix",
+    "lint-check": "eslint .",
     "type-check": "tsc --noEmit --composite false",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
+    "@antfu/eslint-config": "^2.6.4",
+    "eslint": "^8.56.0",
     "lint-staged": "^15.2.2",
     "prettier": "^3.2.5",
     "simple-git-hooks": "^2.9.0",
