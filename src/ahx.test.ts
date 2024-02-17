@@ -7,30 +7,7 @@ import {
   AHXSong as ReferenceSong,
 } from './ahx.reference-implementation.js';
 import { AHXOutput, AHXSong } from './ahx.ts';
-
-function Dump(output, song) {
-  // song = AHXSong()
-  output.Player.InitSong(song);
-  output.Player.InitSubsong(0);
-  output.Init(48000, 16);
-
-  const outSound = [];
-  while (!output.Player.SongEndReached) {
-    output.MixBuffer();
-    outSound.push(...output.MixingBuffer);
-  }
-
-  return outSound;
-}
-
-function toArrayBuffer(buffer: Buffer) {
-  const ab = new ArrayBuffer(buffer.length);
-  const view = new Uint8Array(ab);
-  for (let i = 0; i < buffer.length; ++i) {
-    view[i] = buffer[i];
-  }
-  return ab;
-}
+import { dump, toArrayBuffer } from './utils.ts';
 
 describe('ahx', () => {
   it('should output the same buffer values', async () => {
@@ -41,10 +18,10 @@ describe('ahx', () => {
     binString.data = String.fromCharCode(...songBytes);
     const referenceSong = new ReferenceSong();
     referenceSong.InitSong(binString);
-    const expected = Dump(ReferenceOutput(), referenceSong);
+    const expected = dump(ReferenceOutput(), referenceSong);
 
     const song = new AHXSong(toArrayBuffer(songBytes));
-    const actual = Dump(new AHXOutput(), song);
+    const actual = dump(new AHXOutput(), song);
 
     expect(JSON.stringify(song)).toEqual(JSON.stringify(referenceSong));
     expect(actual).toEqual(expected);

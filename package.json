@@ -14,7 +14,8 @@
     "lint-check": "eslint .",
     "type-check": "tsc --noEmit --composite false",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "bench": "vitest bench"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^2.6.4",
