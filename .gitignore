@@ -25,3 +25,4 @@ dist-ssr
 
 # Project specific
 coverage
+src/ahx.reference-implementation.js
