@@ -16,16 +16,16 @@ export class AHXSong {
   Revision = 0;
   SpeedMultiplier = 0;
   Positions: AHXPosition[] = [];
-  Tracks: AHXTrack[] = [];
+  Tracks: AHXTrack[];
   Instruments: AHXInstrument[] = [];
   Subsongs: number[] = [];
 
-  async LoadSong(url: string) {
+  static async LoadSong(url: string) {
     const buffer = await fetch(url).then(response => response.arrayBuffer());
-    this.InitSong(buffer);
+    return new AHXSong(buffer);
   }
 
-  InitSong(buffer: ArrayBuffer) {
+  constructor(buffer: ArrayBuffer) {
     const view = new DataView(buffer);
 
     // Validate
@@ -67,13 +67,12 @@ export class AHXSong {
     }
 
     // Tracks ////////////////////////////////////////////
-    const MaxTrack = this.TrackNr;
-    //Song.Tracks = new AHXStep*[MaxTrack+1];
-    for (let i = 0; i < MaxTrack + 1; i++) {
-      const Track = [];
+    this.Tracks = Array.from({ length: this.TrackNr + 1 });
+    for (let i = 0; i < this.Tracks.length; i++) {
+      const Track: AHXTrack = Array.from({ length: this.TrackLength });
       if ((view.getUint8(6) & 0x80) === 0x80 && i === 0) {
         // empty track
-        for (let j = 0; j < this.TrackLength; j++) Track.push(new AHXStep());
+        Track.fill(new AHXStep());
       } else {
         for (let j = 0; j < this.TrackLength; j++) {
           const Step = new AHXStep();
@@ -81,11 +80,11 @@ export class AHXSong {
           Step.Instrument = ((view.getUint8(SBPtr) & 0x3) << 4) | (view.getUint8(SBPtr + 1) >> 4);
           Step.FX = view.getUint8(SBPtr + 1) & 0xf;
           Step.FXParam = view.getUint8(SBPtr + 2);
-          Track.push(Step);
+          Track[j] = Step;
           SBPtr += 3;
         }
       }
-      this.Tracks.push(Track);
+      this.Tracks[i] = Track;
     }
 
     // Instruments ///////////////////////////////////////

@@ -43,8 +43,7 @@ describe('ahx', () => {
     referenceSong.InitSong(binString);
     const expected = Dump(ReferenceOutput(), referenceSong);
 
-    const song = new AHXSong();
-    song.InitSong(toArrayBuffer(songBytes));
+    const song = new AHXSong(toArrayBuffer(songBytes));
     const actual = Dump(new AHXOutput(), song);
 
     expect(JSON.stringify(song)).toEqual(JSON.stringify(referenceSong));

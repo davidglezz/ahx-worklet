@@ -8,6 +8,7 @@ export class AHXOutput {
   MixingBuffer: number[] = [];
 
   constructor(public Player = new AHXPlayer()) {}
+
   Init(Frequency: number, Bits: number) {
     this.Frequency = Frequency;
     this.Bits = Bits;
@@ -36,21 +37,21 @@ export class AHXOutput {
             6;
           this.pos[v] += delta;
         }
-      } // while
-    } // v = 0-3
+      }
+    }
     mb += NrSamples;
     return mb;
-  } // MixChunk
+  }
 
   MixBuffer() {
     // Output: 1 amiga(50hz)-frame of audio data
-    for (let i = 0; i < this.BufferSize; i++) this.MixingBuffer[i] = 0;
+    this.MixingBuffer.fill(0);
 
     let mb = 0;
     const NrSamples = Math.floor(this.BufferSize / this.Player.Song.SpeedMultiplier);
     for (let f = 0; f < this.Player.Song.SpeedMultiplier; f++) {
       this.Player.PlayIRQ();
       mb = this.MixChunk(NrSamples, mb);
-    } // frames
+    }
   }
 }

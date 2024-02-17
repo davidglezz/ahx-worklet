@@ -2,7 +2,7 @@ export function AHXMaster() {
   window.AudioContext = window.AudioContext || window.webkitAudioContext;
   if (typeof AudioContext != 'undefined') return new AHXMasterWebKit();
   else if (typeof new Audio().mozSetup != 'undefined') return new AHXMasterMoz();
-  else return new AHXMasterNull();
+  else throw new Error('No audio support in this browser!');
 }
 
 function AHXMasterWebKit(output) {
@@ -140,7 +140,7 @@ function AHXMasterMoz(output) {
     let out = 0;
 
     while (want > 0) {
-      if (this.bufferFull == 0) {
+      if (this.bufferFull === 0) {
         this.Output.MixBuffer();
         this.bufferFull = this.Output.BufferSize;
         this.bufferOffset = 0;
@@ -169,17 +169,5 @@ function AHXMasterMoz(output) {
 
   this.init();
   this.reset();
-  return this;
-}
-
-function AHXMasterNull() {
-  this.Play = function () {};
-
-  this.init = function () {};
-
-  this.reset = function () {};
-
-  this.Stop = function () {};
-
   return this;
 }
