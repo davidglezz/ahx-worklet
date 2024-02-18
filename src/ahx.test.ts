@@ -8,14 +8,14 @@ import {
 import { AHXOutput, AHXSong } from './ahx.ts';
 import { dump, toArrayBuffer } from './utils.ts';
 
-describe('AHX: It should output the same buffer values', () => {
+describe.concurrent('AHX: It should output the same buffer values', () => {
   it.each([
-    // ['03.ahx'], // Fail
-    // ['04.ahx'], // Fail
-    // ['die audienz ist horenz.ahx'], // Fail
+    // ['03.ahx'],
+    // ['04.ahx'],
+    // ['die audienz ist horenz.ahx'], // Fail?
     //['drums.ahx'],
-    ['frame.ahx'],  // Fail
-    // ['holla 2.ahx'], // Fail
+    ['frame.ahx'],
+    //['holla 2.ahx'], // Fail?
     //['loom.ahx'],
     //['thxcolly-intro.ahx'],
     //['void.ahx'],
@@ -32,7 +32,9 @@ describe('AHX: It should output the same buffer values', () => {
     const actual = dump(new AHXOutput(), song);
 
     //expect(JSON.stringify(song, null, 2)).toEqual(JSON.stringify(referenceSong, null, 2));
-    expect(actual.length).toBe(expected.length);
-    expect(actual).toEqual(expected);
+    for (const expectedChunk of expected) {
+      expect(actual.next().value).toEqual(expectedChunk);
+    }
+    expect(actual.next()).toEqual({ value: undefined, done: true });
   });
 });

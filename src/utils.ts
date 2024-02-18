@@ -19,18 +19,15 @@ export function readString(view: DataView, pos: number) {
  * @param song AHXSong-like object
  * @returns full audio buffer
  */
-export function dump(output: any, song: any) {
+export function* dump(output: any, song: any) {
   output.Player.InitSong(song);
   output.Player.InitSubsong(0);
   output.Init(48000, 16);
 
-  const outSound = [];
   while (!output.Player.SongEndReached) {
     output.MixBuffer();
-    outSound.push(...output.MixingBuffer);
+    yield output.MixingBuffer;
   }
-
-  return outSound;
 }
 
 export function toArrayBuffer(buffer: Buffer) {
