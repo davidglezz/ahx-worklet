@@ -65,11 +65,11 @@ export class AHXPlayer {
       if (this.GetNewPosition) {
         let NextPos = this.PosNr + 1 === this.Song.PositionNr ? 0 : this.PosNr + 1;
         if (this.PosNr >= this.Song.Positions.length) {
-          console.log('Track range error? 01');
+          // Track range error? 01
           this.PosNr = this.Song.PositionNr - 1;
         }
         if (NextPos >= this.Song.Positions.length) {
-          console.log('Track range error? 02');
+          // Track range error? 02
           NextPos = this.Song.PositionNr - 1;
         }
         for (let i = 0; i < 4; i++) {
@@ -195,7 +195,7 @@ export class AHXPlayer {
       if (Instrument < this.Song.Instruments.length) {
         this.Voices[v].Instrument = this.Song.Instruments[Instrument];
       } else {
-        console.log('OVERRIDING INSTRUMENT', Instrument, this.Song.Instruments.length);
+        // Overriding instrument
         this.Voices[v].Instrument = this.Song.Instruments[0];
       }
       this.Voices[v].CalcADSR();
@@ -647,10 +647,8 @@ export class AHXPlayer {
         const WaveLoops = (1 << (5 - this.Voices[v].WaveLength)) * 5;
         const LoopLen = 4 * (1 << this.Voices[v].WaveLength);
         if (!this.Voices[v].AudioSource.length) {
+          // New or fill?
           this.Voices[v].VoiceBuffer = Array.from({ length: WaveLoops * LoopLen });
-          for (let i = 0; i < WaveLoops * LoopLen; i++) {
-            this.Voices[v].VoiceBuffer = 0;
-          }
         } else {
           this.Voices[v].VoiceBuffer = [];
           for (let i = 0; i < WaveLoops; i++) {
