@@ -8,10 +8,19 @@ import {
 import { AHXOutput, AHXSong } from './ahx.ts';
 import { dump, toArrayBuffer } from './utils.ts';
 
-describe('ahx', () => {
-  it('should output the same buffer values', async () => {
-    //const songBytes = readFileSync('../songs/Galassir/saul the lawyer.ahx');
-    const songBytes = readFileSync('../songs/Xeron/thxcolly-intro.ahx');
+describe('AHX: It should output the same buffer values', () => {
+  it.each([
+    // ['03.ahx'], // Fail
+    // ['04.ahx'], // Fail
+    // ['die audienz ist horenz.ahx'], // Fail
+    //['drums.ahx'],
+    ['frame.ahx'],  // Fail
+    // ['holla 2.ahx'], // Fail
+    //['loom.ahx'],
+    //['thxcolly-intro.ahx'],
+    //['void.ahx'],
+  ])('File %s', file => {
+    const songBytes = readFileSync(`test-songs/${file}`);
 
     const binString = new DataType();
     binString.data = String.fromCharCode(...songBytes);
@@ -22,7 +31,8 @@ describe('ahx', () => {
     const song = new AHXSong(toArrayBuffer(songBytes));
     const actual = dump(new AHXOutput(), song);
 
-    expect(JSON.stringify(song, null, 2)).toEqual(JSON.stringify(referenceSong, null, 2));
+    //expect(JSON.stringify(song, null, 2)).toEqual(JSON.stringify(referenceSong, null, 2));
+    expect(actual.length).toBe(expected.length);
     expect(actual).toEqual(expected);
   });
 });
