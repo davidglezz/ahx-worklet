@@ -650,12 +650,10 @@ export class AHXPlayer {
           // New or fill?
           this.Voices[v].VoiceBuffer = Array.from({ length: WaveLoops * LoopLen });
         } else {
-          this.Voices[v].VoiceBuffer = [];
-          for (let i = 0; i < WaveLoops; i++) {
-            this.Voices[v].VoiceBuffer = this.Voices[v].VoiceBuffer.concat(
-              this.Voices[v].AudioSource.slice(0, LoopLen),
-            );
-          }
+          const Loop = this.Voices[v].AudioSource.slice(0, LoopLen);
+          this.Voices[v].VoiceBuffer = Array.from<number[]>({ length: WaveLoops })
+            .fill(Loop)
+            .flat();
         }
       }
       //this.Voices[v].VoiceBuffer[0x280] = this.Voices[v].VoiceBuffer[0];
