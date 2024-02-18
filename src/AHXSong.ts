@@ -1,4 +1,4 @@
-import { AHXInstrument, AHXPlistEntry , AHXPosition, AHXTrack} from './types.ts';
+import { AHXInstrument, AHXPlistEntry, AHXPosition, AHXTrack } from './types.ts';
 import { readString } from './utils.ts';
 
 export class AHXSong {
@@ -127,7 +127,8 @@ export class AHXSong {
         },
         FilterLowerLimit: view.getUint8(SBPtr + 12) & 0x7f,
         FilterUpperLimit: view.getUint8(SBPtr + 19) & 0x3f,
-        FilterSpeed: ((view.getUint8(SBPtr + 1) >> 3) & 0x1f) | ((view.getUint8(SBPtr + 12) >> 2) & 0x20),
+        FilterSpeed:
+          ((view.getUint8(SBPtr + 1) >> 3) & 0x1f) | ((view.getUint8(SBPtr + 12) >> 2) & 0x20),
         SquareLowerLimit: view.getUint8(SBPtr + 16),
         SquareUpperLimit: view.getUint8(SBPtr + 17),
         SquareSpeed: view.getUint8(SBPtr + 18),

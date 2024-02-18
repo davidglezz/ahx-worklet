@@ -51,7 +51,6 @@ export interface AHXPosition {
   Transpose: number[];
 }
 
-
 export interface AHXStep {
   Note: number;
   Instrument: number;
@@ -60,7 +59,6 @@ export interface AHXStep {
 }
 
 export type AHXTrack = AHXStep[];
-
 
 export interface AHXPlistEntry {
   Note: number;

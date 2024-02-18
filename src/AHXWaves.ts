@@ -1,4 +1,4 @@
-import { AHXWaves, FilterWaveform } from "./types";
+import { AHXWaves, FilterWaveform } from './types';
 
 export function buildAHXWaves() {
   const filterSets: AHXWaves = Array.from({ length: 31 + 1 + 31 });
