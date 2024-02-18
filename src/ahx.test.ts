@@ -1,4 +1,3 @@
-import type { Buffer } from 'node:buffer';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
@@ -23,7 +22,7 @@ describe('ahx', () => {
     const song = new AHXSong(toArrayBuffer(songBytes));
     const actual = dump(new AHXOutput(), song);
 
-    expect(JSON.stringify(song)).toEqual(JSON.stringify(referenceSong));
+    expect(JSON.stringify(song, null, 2)).toEqual(JSON.stringify(referenceSong, null, 2));
     expect(actual).toEqual(expected);
   });
 });

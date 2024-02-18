@@ -1,8 +1,4 @@
-import { AHXInstrument } from './AHXInstrument.ts';
-import { AHXPlistEntry } from './AHXPlistEntry.ts';
-import { AHXPosition } from './AHXPosition.ts';
-import type { AHXTrack } from './AHXStep.ts';
-import { AHXStep } from './AHXStep.ts';
+import { AHXInstrument, AHXPlistEntry , AHXPosition, AHXTrack} from './types.ts';
 import { readString } from './utils.ts';
 
 export class AHXSong {
@@ -57,7 +53,7 @@ export class AHXSong {
 
     // Position List /////////////////////////////////////
     for (let i = 0; i < this.PositionNr; i++) {
-      const Pos = new AHXPosition();
+      const Pos: AHXPosition = { Track: [], Transpose: [] };
       for (let j = 0; j < 4; j++) {
         Pos.Track.push(view.getUint8(SBPtr++));
         Pos.Transpose.push(view.getInt8(SBPtr++));
@@ -69,17 +65,17 @@ export class AHXSong {
     this.Tracks = Array.from({ length: this.TrackNr + 1 });
     for (let i = 0; i < this.Tracks.length; i++) {
       const Track: AHXTrack = Array.from({ length: this.TrackLength });
-      if ((view.getUint8(6) & 0x80) === 0x80 && i === 0) {
+      if (i === 0 && (view.getUint8(6) & 0x80) === 0x80) {
         // empty track
-        Track.fill(new AHXStep());
+        Track.fill({ Note: 0, Instrument: 0, FX: 0, FXParam: 0 });
       } else {
         for (let j = 0; j < this.TrackLength; j++) {
-          const Step = new AHXStep();
-          Step.Note = (view.getUint8(SBPtr) >> 2) & 0x3f;
-          Step.Instrument = ((view.getUint8(SBPtr) & 0x3) << 4) | (view.getUint8(SBPtr + 1) >> 4);
-          Step.FX = view.getUint8(SBPtr + 1) & 0xf;
-          Step.FXParam = view.getUint8(SBPtr + 2);
-          Track[j] = Step;
+          Track[j] = {
+            Note: (view.getUint8(SBPtr) >> 2) & 0x3f,
+            Instrument: ((view.getUint8(SBPtr) & 0x3) << 4) | (view.getUint8(SBPtr + 1) >> 4),
+            FX: view.getUint8(SBPtr + 1) & 0xf,
+            FXParam: view.getUint8(SBPtr + 2),
+          };
           SBPtr += 3;
         }
       }
@@ -87,48 +83,82 @@ export class AHXSong {
     }
 
     // Instruments ///////////////////////////////////////
-    this.Instruments.push(new AHXInstrument()); // empty instrument 0
+    // 0: empty instrument
+    this.Instruments.push({
+      Name: '',
+      Volume: 0,
+      WaveLength: 0,
+      Envelope: {
+        aFrames: 0,
+        aVolume: 0,
+        dFrames: 0,
+        dVolume: 0,
+        sFrames: 0,
+        rFrames: 0,
+        rVolume: 0,
+      },
+      FilterLowerLimit: 0,
+      FilterUpperLimit: 0,
+      FilterSpeed: 0,
+      SquareLowerLimit: 0,
+      SquareUpperLimit: 0,
+      SquareSpeed: 0,
+      VibratoDelay: 0,
+      VibratoDepth: 0,
+      VibratoSpeed: 0,
+      HardCutRelease: 0,
+      HardCutReleaseFrames: 0,
+      PList: { Speed: 0, Length: 0, Entries: [] },
+    });
+
     for (let i = 1; i < this.InstrumentNr + 1; i++) {
-      const Instrument = new AHXInstrument();
-      Instrument.Name = readString(view, NamePtr);
+      const Instrument: AHXInstrument = {
+        Name: readString(view, NamePtr),
+        Volume: view.getUint8(SBPtr + 0),
+        WaveLength: view.getUint8(SBPtr + 1) & 0x7,
+        Envelope: {
+          aFrames: view.getUint8(SBPtr + 2),
+          aVolume: view.getUint8(SBPtr + 3),
+          dFrames: view.getUint8(SBPtr + 4),
+          dVolume: view.getUint8(SBPtr + 5),
+          sFrames: view.getUint8(SBPtr + 6),
+          rFrames: view.getUint8(SBPtr + 7),
+          rVolume: view.getUint8(SBPtr + 8),
+        },
+        FilterLowerLimit: view.getUint8(SBPtr + 12) & 0x7f,
+        FilterUpperLimit: view.getUint8(SBPtr + 19) & 0x3f,
+        FilterSpeed: ((view.getUint8(SBPtr + 1) >> 3) & 0x1f) | ((view.getUint8(SBPtr + 12) >> 2) & 0x20),
+        SquareLowerLimit: view.getUint8(SBPtr + 16),
+        SquareUpperLimit: view.getUint8(SBPtr + 17),
+        SquareSpeed: view.getUint8(SBPtr + 18),
+        VibratoDelay: view.getUint8(SBPtr + 13),
+        VibratoDepth: view.getUint8(SBPtr + 14) & 0xf,
+        VibratoSpeed: view.getUint8(SBPtr + 15),
+        HardCutRelease: view.getUint8(SBPtr + 14) & 0x80 ? 1 : 0,
+        HardCutReleaseFrames: (view.getUint8(SBPtr + 14) >> 4) & 7,
+        PList: {
+          Speed: view.getUint8(SBPtr + 20),
+          Length: view.getUint8(SBPtr + 21),
+          Entries: [],
+        },
+      };
       NamePtr += Instrument.Name.length + 1;
-      Instrument.Volume = view.getUint8(SBPtr + 0);
-      Instrument.FilterSpeed =
-        ((view.getUint8(SBPtr + 1) >> 3) & 0x1f) | ((view.getUint8(SBPtr + 12) >> 2) & 0x20);
-      Instrument.WaveLength = view.getUint8(SBPtr + 1) & 0x7;
-      Instrument.Envelope.aFrames = view.getUint8(SBPtr + 2);
-      Instrument.Envelope.aVolume = view.getUint8(SBPtr + 3);
-      Instrument.Envelope.dFrames = view.getUint8(SBPtr + 4);
-      Instrument.Envelope.dVolume = view.getUint8(SBPtr + 5);
-      Instrument.Envelope.sFrames = view.getUint8(SBPtr + 6);
-      Instrument.Envelope.rFrames = view.getUint8(SBPtr + 7);
-      Instrument.Envelope.rVolume = view.getUint8(SBPtr + 8);
-      Instrument.FilterLowerLimit = view.getUint8(SBPtr + 12) & 0x7f;
-      Instrument.VibratoDelay = view.getUint8(SBPtr + 13);
-      Instrument.HardCutReleaseFrames = (view.getUint8(SBPtr + 14) >> 4) & 7;
-      Instrument.HardCutRelease = view.getUint8(SBPtr + 14) & 0x80 ? 1 : 0;
-      Instrument.VibratoDepth = view.getUint8(SBPtr + 14) & 0xf;
-      Instrument.VibratoSpeed = view.getUint8(SBPtr + 15);
-      Instrument.SquareLowerLimit = view.getUint8(SBPtr + 16);
-      Instrument.SquareUpperLimit = view.getUint8(SBPtr + 17);
-      Instrument.SquareSpeed = view.getUint8(SBPtr + 18);
-      Instrument.FilterUpperLimit = view.getUint8(SBPtr + 19) & 0x3f;
-      Instrument.PList.Speed = view.getUint8(SBPtr + 20);
-      Instrument.PList.Length = view.getUint8(SBPtr + 21);
       SBPtr += 22;
 
-      //Instrument.PList.Entries=new AHXPListEntry[Instrument.PList.Length);
       for (let j = 0; j < Instrument.PList.Length; j++) {
-        const Entry = new AHXPlistEntry();
-        Entry.FX[0] = (view.getUint8(SBPtr + 0) >> 2) & 7;
-        Entry.FX[1] = (view.getUint8(SBPtr + 0) >> 5) & 7;
-        Entry.Waveform = ((view.getUint8(SBPtr + 0) << 1) & 6) | (view.getUint8(SBPtr + 1) >> 7);
-        Entry.Fixed = (view.getUint8(SBPtr + 1) >> 6) & 1;
-        Entry.Note = view.getUint8(SBPtr + 1) & 0x3f;
-        Entry.FXParam[0] = view.getUint8(SBPtr + 2);
-        Entry.FXParam[1] = view.getUint8(SBPtr + 3);
+        const byte0 = view.getUint8(SBPtr++);
+        const byte1 = view.getUint8(SBPtr++);
+        const byte2 = view.getUint8(SBPtr++);
+        const byte3 = view.getUint8(SBPtr++);
+
+        const Entry: AHXPlistEntry = {
+          Note: byte1 & 0x3f,
+          Fixed: (byte1 >> 6) & 1,
+          Waveform: ((byte0 << 1) & 6) | (byte1 >> 7),
+          FX: [(byte0 >> 2) & 7, (byte0 >> 5) & 7],
+          FXParam: [byte2, byte3],
+        };
         Instrument.PList.Entries.push(Entry);
-        SBPtr += 4;
       }
       this.Instruments.push(Instrument);
     }

@@ -49,7 +49,7 @@ export class AHXPlayer {
 
     this.PosJump = 0;
     this.PatternBreak = 0;
-    //this.MainVolume = ;
+    //this.MainVolume = 0x40;
     this.Playing = 1;
     this.NoteNr = this.PosJumpNote = 0;
     this.Tempo = 6;
@@ -57,10 +57,7 @@ export class AHXPlayer {
     this.GetNewPosition = 1;
     this.SongEndReached = 0;
     this.TimingValue = this.PlayingTime = 0;
-
     this.Voices = [new AHXVoice(), new AHXVoice(), new AHXVoice(), new AHXVoice()];
-
-    return 1;
   }
 
   PlayIRQ() {
@@ -564,44 +561,44 @@ export class AHXPlayer {
           // triangle
           switch (this.Voices[v].WaveLength) {
             case 0:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle04.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle04;
               break;
             case 1:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle08.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle08;
               break;
             case 2:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle10.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle10;
               break;
             case 3:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle20.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle20;
               break;
             case 4:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle40.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle40;
               break;
             case 5:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle80.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle80;
               break;
           }
         } else if (this.Voices[v].Waveform === 2 - 1) {
           // sawtooth
           switch (this.Voices[v].WaveLength) {
             case 0:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth04.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth04;
               break;
             case 1:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth08.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth08;
               break;
             case 2:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth10.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth10;
               break;
             case 3:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth20.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth20;
               break;
             case 4:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth40.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth40;
               break;
             case 5:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth80.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth80;
               break;
           }
         }
@@ -645,7 +642,7 @@ export class AHXPlayer {
     if (this.Voices[v].NewWaveform) {
       if (this.Voices[v].Waveform === 4 - 1) {
         // for white noise, copy whole 0x280 samples
-        this.Voices[v].VoiceBuffer = this.Voices[v].AudioSource.slice();
+        this.Voices[v].VoiceBuffer = this.Voices[v].AudioSource;
       } else {
         const WaveLoops = (1 << (5 - this.Voices[v].WaveLength)) * 5;
         const LoopLen = 4 * (1 << this.Voices[v].WaveLength);

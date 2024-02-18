@@ -1,6 +1,4 @@
-import { AHXEnvelope } from './AHXEnvelope.ts';
-import type { AHXInstrument } from './AHXInstrument.ts';
-import type { AHXPList } from './AHXPList.ts';
+import type { AHXEnvelope, AHXPList, AHXInstrument } from './types.ts';
 
 export class AHXVoice {
   // Read those variables for mixing!
@@ -13,8 +11,16 @@ export class AHXVoice {
   NextTrack = 0;
   NextTranspose = 0;
   ADSRVolume = 0; // fixed point 8 =8
-  ADSR = new AHXEnvelope(); // frames/delta fixed 8 =8
-  Instrument: AHXInstrument | null = null; // current instrument
+  ADSR: AHXEnvelope = {
+    aFrames: 0,
+    aVolume: 0,
+    dFrames: 0,
+    dVolume: 0,
+    sFrames: 0,
+    rFrames: 0,
+    rVolume: 0,
+  };
+  Instrument!: AHXInstrument; // current instrument
   InstrPeriod = 0;
   TrackPeriod = 0;
   VibratoPeriod = 0;
@@ -68,7 +74,7 @@ export class AHXVoice {
   PerfSpeed = 0;
   PerfWait = 0;
   WaveLength = 0;
-  PerfList: AHXPList | null = null;
+  PerfList!: AHXPList;
   NoteDelayWait = 0;
   NoteDelayOn = 0;
   NoteCutWait = 0;
@@ -79,9 +85,6 @@ export class AHXVoice {
   //SquareTempBuffer: new Array(0x80), //char SquareTempBuffer[0x80]: 0,
 
   CalcADSR() {
-    if (this.Instrument === null) {
-      throw new Error('Instrument is null!');
-    }
     this.ADSR.aFrames = this.Instrument.Envelope.aFrames;
     this.ADSR.aVolume = (this.Instrument.Envelope.aVolume * 256) / this.ADSR.aFrames;
     this.ADSR.dFrames = this.Instrument.Envelope.dFrames;
