@@ -1,6 +1,6 @@
 import type { AHXSong } from './AHXSong.ts';
 import { AHXVoice } from './AHXVoice.ts';
-import { AHXWaves } from './AHXWaves.ts';
+import { buildAHXWaves } from './AHXWaves.ts';
 import { toSixtyTwo } from './utils.ts';
 
 export class AHXPlayer {
@@ -17,7 +17,7 @@ export class AHXPlayer {
   NoteNr = 0;
   PosJumpNote = 0;
   WaveformTab = [0, 0, 0, 0];
-  Waves = new AHXWaves();
+  WavesFilterSets = buildAHXWaves();
   Voices: AHXVoice[] & { length: 0 | 4 } = [];
   WNRandom = 0;
   Song!: AHXSong;
@@ -518,7 +518,7 @@ export class AHXPlayer {
     }
     if (this.Voices[v].Waveform === 3 - 1 || this.Voices[v].PlantSquare) {
       //CalcSquare
-      const SquarePtr = this.Waves.FilterSets[toSixtyTwo(this.Voices[v].FilterPos - 1)].Squares;
+      const SquarePtr = this.WavesFilterSets[toSixtyTwo(this.Voices[v].FilterPos - 1)].Squares;
       let SquareOfs = 0;
       let X = this.Voices[v].SquarePos << (5 - this.Voices[v].WaveLength);
       if (X > 0x20) {
@@ -552,7 +552,7 @@ export class AHXPlayer {
         if (this.Voices[v].Waveform === 4 - 1) {
           // white noise
           const WNStart = this.WNRandom & (2 * 0x280 - 1) & ~1;
-          this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].WhiteNoiseBig.slice(
+          this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].WhiteNoiseBig.slice(
             WNStart,
             WNStart + 0x280,
           );
@@ -564,44 +564,44 @@ export class AHXPlayer {
           // triangle
           switch (this.Voices[v].WaveLength) {
             case 0:
-              this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Triangle04.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle04.slice();
               break;
             case 1:
-              this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Triangle08.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle08.slice();
               break;
             case 2:
-              this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Triangle10.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle10.slice();
               break;
             case 3:
-              this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Triangle20.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle20.slice();
               break;
             case 4:
-              this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Triangle40.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle40.slice();
               break;
             case 5:
-              this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Triangle80.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle80.slice();
               break;
           }
         } else if (this.Voices[v].Waveform === 2 - 1) {
           // sawtooth
           switch (this.Voices[v].WaveLength) {
             case 0:
-              this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Sawtooth04.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth04.slice();
               break;
             case 1:
-              this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Sawtooth08.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth08.slice();
               break;
             case 2:
-              this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Sawtooth10.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth10.slice();
               break;
             case 3:
-              this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Sawtooth20.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth20.slice();
               break;
             case 4:
-              this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Sawtooth40.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth40.slice();
               break;
             case 5:
-              this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Sawtooth80.slice();
+              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth80.slice();
               break;
           }
         }
