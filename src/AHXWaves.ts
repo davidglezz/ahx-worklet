@@ -9,6 +9,10 @@ export function AHXWaves(): AHXWaves {
   return computedAHXWaves;
 }
 
+export function resetComputedAHXWaves() {
+  computedAHXWaves = undefined;
+}
+
 function buildAHXWaves() {
   const filterSets: AHXWaves = Array.from({ length: 31 + 1 + 31 });
   filterSets[31] = {
