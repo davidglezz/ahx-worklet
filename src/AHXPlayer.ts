@@ -1,6 +1,6 @@
 import type { AHXSong } from './AHXSong.ts';
 import { AHXVoice } from './AHXVoice.ts';
-import { buildAHXWaves } from './AHXWaves.ts';
+import { AHXWaves } from './AHXWaves.ts';
 import { toSixtyTwo } from './utils.ts';
 
 export class AHXPlayer {
@@ -17,7 +17,7 @@ export class AHXPlayer {
   NoteNr = 0;
   PosJumpNote = 0;
   WaveformTab = [0, 0, 0, 0];
-  WavesFilterSets = buildAHXWaves();
+  WavesFilterSets = AHXWaves();
   Voices: AHXVoice[] & { length: 0 | 4 } = [];
   WNRandom = 0;
   Song!: AHXSong;

@@ -1,6 +1,15 @@
 import { AHXWaves, FilterWaveform } from './types';
 
-export function buildAHXWaves() {
+let computedAHXWaves: AHXWaves | undefined;
+export function AHXWaves(): AHXWaves {
+  if (!computedAHXWaves) {
+    computedAHXWaves = buildAHXWaves();
+    Object.freeze(computedAHXWaves);
+  }
+  return computedAHXWaves;
+}
+
+function buildAHXWaves() {
   const filterSets: AHXWaves = Array.from({ length: 31 + 1 + 31 });
   filterSets[31] = {
     Sawtooth04: GenerateSawtooth(0x04),

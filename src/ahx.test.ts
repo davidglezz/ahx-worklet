@@ -10,15 +10,15 @@ import { dump, toArrayBuffer } from './utils.ts';
 
 describe.concurrent('AHX: It should output the same buffer values', () => {
   it.each([
-    // ['03.ahx'],
-    // ['04.ahx'],
-    // ['die audienz ist horenz.ahx'], // Fail?
-    //['drums.ahx'],
+    ['03.ahx'],
+    ['04.ahx'],
+    ['die audienz ist horenz.ahx'], // Fail
+    ['drums.ahx'],
     ['frame.ahx'],
-    //['holla 2.ahx'], // Fail?
-    //['loom.ahx'],
-    //['thxcolly-intro.ahx'],
-    //['void.ahx'],
+    ['holla 2.ahx'], // Fail
+    ['loom.ahx'],
+    ['thxcolly-intro.ahx'],
+    ['void.ahx'],
   ])('File %s', file => {
     const songBytes = readFileSync(`test-songs/${file}`);
 
