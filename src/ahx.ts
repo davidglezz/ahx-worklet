@@ -100,10 +100,10 @@ export class AHXSong {
   SubsongNr: number;
   Revision: number;
   SpeedMultiplier: number;
-  Positions: AHXPosition[] = [];
+  Positions: AHXPosition[];
   Tracks: AHXTrack[];
-  Instruments: AHXInstrument[] = [];
-  Subsongs: number[] = [];
+  Instruments: AHXInstrument[];
+  Subsongs: number[];
 
   static async LoadSong(url: string) {
     const buffer = await fetch(url).then(response => response.arrayBuffer());
@@ -135,24 +135,23 @@ export class AHXSong {
     this.SubsongNr = view.getUint8(13);
 
     // Subsongs //////////////////////////////////////////
-    for (let i = 0; i < this.SubsongNr; i++) {
-      this.Subsongs.push((view.getUint8(SBPtr + 0) << 8) | view.getUint8(SBPtr + 1));
-      SBPtr += 2;
-    }
+    this.Subsongs = Array.from(
+      { length: this.SubsongNr },
+      () => (view.getUint8(SBPtr++) << 8) | view.getUint8(SBPtr++),
+    );
 
     // Position List /////////////////////////////////////
-    for (let i = 0; i < this.PositionNr; i++) {
+    this.Positions = Array.from({ length: this.PositionNr }, () => {
       const Pos: AHXPosition = { Track: [], Transpose: [] };
       for (let j = 0; j < 4; j++) {
         Pos.Track.push(view.getUint8(SBPtr++));
         Pos.Transpose.push(view.getInt8(SBPtr++));
       }
-      this.Positions.push(Pos);
-    }
+      return Pos;
+    });
 
     // Tracks ////////////////////////////////////////////
-    this.Tracks = Array.from({ length: this.TrackNr + 1 });
-    for (let i = 0; i < this.Tracks.length; i++) {
+    this.Tracks = Array.from({ length: this.TrackNr + 1 }, (_, i) => {
       const Track: AHXTrack = Array.from({ length: this.TrackLength });
       if (i === 0 && (view.getUint8(6) & 0x80) === 0x80) {
         // empty track
@@ -168,12 +167,13 @@ export class AHXSong {
           SBPtr += 3;
         }
       }
-      this.Tracks[i] = Track;
-    }
+      return Track;
+    });
 
     // Instruments ///////////////////////////////////////
-    // 0: empty instrument
-    this.Instruments.push({
+    this.Instruments = Array.from({ length: this.InstrumentNr });
+    // Empty instrument
+    this.Instruments[0] = {
       Name: '',
       Volume: 0,
       WaveLength: 0,
@@ -198,7 +198,7 @@ export class AHXSong {
       HardCutRelease: 0,
       HardCutReleaseFrames: 0,
       PList: { Speed: 0, Length: 0, Entries: [] },
-    });
+    };
 
     for (let i = 1; i < this.InstrumentNr + 1; i++) {
       const Instrument: AHXInstrument = {
@@ -250,7 +250,7 @@ export class AHXSong {
         };
         Instrument.PList.Entries.push(Entry);
       }
-      this.Instruments.push(Instrument);
+      this.Instruments[i] = Instrument;
     }
   }
 }
