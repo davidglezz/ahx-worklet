@@ -74,10 +74,11 @@ export interface AHXPList {
   Entries: AHXPlistEntry[];
 }
 
-export const toSixtyTwo = (v: number) =>
-  v < 0 ? 0
-  : v > 62 ? 62
+const clamp = (v: number, min: number, max: number) =>
+  v < min ? min
+  : v > max ? max
   : v;
+const toSixtyTwo = (v: number) => clamp(v, 0, 62);
 
 export function readString(view: DataView, pos: number) {
   let str = '';
@@ -546,31 +547,20 @@ function GenerateWhiteNoise(Len: number) {
   return noise.slice(0, Len);
 }
 
-function Filter(input: number[], fre: number, lowOrHigh: 0 | 1) {
-  // 0 = low, 1 = high
+function Filter(input: number[], fre: number): [low: number[], high: number[]] {
   let high;
   let mid = 0.0;
   let low = 0.0;
-  const output: number[] = [];
+  const outputLow = Array.from<number>({ length: input.length });
+  const outputHigh = Array.from<number>({ length: input.length });
   for (let i = 0; i < input.length; i++) {
-    high = input[i] - mid - low;
-    high = Math.min(127.0, Math.max(-128.0, high));
-    mid += high * fre;
-    mid = Math.min(127.0, Math.max(-128.0, mid));
-    low += mid * fre;
-    low = Math.min(127.0, Math.max(-128.0, low));
+    high = clamp(input[i] - mid - low, -128.0, 127.0);
+    mid = clamp(mid + high * fre, -128.0, 127.0);
+    low = clamp(low + mid * fre, -128.0, 127.0);
+    outputLow[i] = Math.floor(low);
+    outputHigh[i] = Math.floor(high);
   }
-  for (let i = 0; i < input.length; i++) {
-    high = input[i] - mid - low;
-    high = Math.min(127.0, Math.max(-128.0, high));
-    mid += high * fre;
-    mid = Math.min(127.0, Math.max(-128.0, mid));
-    low += mid * fre;
-    low = Math.min(127.0, Math.max(-128.0, low));
-    if (lowOrHigh) output.push(Math.floor(high));
-    else output.push(Math.floor(low));
-  }
-  return output;
+  return [outputLow, outputHigh];
 }
 
 function GenerateFilterWaveforms(filterSets: FilterWaveform[]) {
@@ -583,45 +573,57 @@ function GenerateFilterWaveforms(filterSets: FilterWaveform[]) {
     let dstHighSquares: number[] = [];
     // squares alle einzeln filtern
     for (let i = 0; i < 0x20; i++) {
-      dstLowSquares = dstLowSquares.concat(
-        Filter(src.Squares.slice(i * 0x80, (i + 1) * 0x80), fre, 0),
-      );
-      dstHighSquares = dstHighSquares.concat(
-        Filter(src.Squares.slice(i * 0x80, (i + 1) * 0x80), fre, 1),
-      );
+      const square = src.Squares.slice(i * 0x80, (i + 1) * 0x80);
+      const [dstLowSquare, dstHighSquare] = Filter(square, fre);
+      dstLowSquares = dstLowSquares.concat(dstLowSquare);
+      dstHighSquares = dstHighSquares.concat(dstHighSquare);
     }
 
+    const [lowSawtooth04, highSawtooth04] = Filter(src.Sawtooth04, fre);
+    const [lowSawtooth08, highSawtooth08] = Filter(src.Sawtooth08, fre);
+    const [lowSawtooth10, highSawtooth10] = Filter(src.Sawtooth10, fre);
+    const [lowSawtooth20, highSawtooth20] = Filter(src.Sawtooth20, fre);
+    const [lowSawtooth40, highSawtooth40] = Filter(src.Sawtooth40, fre);
+    const [lowSawtooth80, highSawtooth80] = Filter(src.Sawtooth80, fre);
+    const [lowTriangle04, highTriangle04] = Filter(src.Triangle04, fre);
+    const [lowTriangle08, highTriangle08] = Filter(src.Triangle08, fre);
+    const [lowTriangle10, highTriangle10] = Filter(src.Triangle10, fre);
+    const [lowTriangle20, highTriangle20] = Filter(src.Triangle20, fre);
+    const [lowTriangle40, highTriangle40] = Filter(src.Triangle40, fre);
+    const [lowTriangle80, highTriangle80] = Filter(src.Triangle80, fre);
+    const [lowWhiteNoiseBig, highWhiteNoiseBig] = Filter(src.WhiteNoiseBig, fre);
+
     const dstLow: FilterWaveform = {
-      Sawtooth04: Filter(src.Sawtooth04, fre, 0),
-      Sawtooth08: Filter(src.Sawtooth08, fre, 0),
-      Sawtooth10: Filter(src.Sawtooth10, fre, 0),
-      Sawtooth20: Filter(src.Sawtooth20, fre, 0),
-      Sawtooth40: Filter(src.Sawtooth40, fre, 0),
-      Sawtooth80: Filter(src.Sawtooth80, fre, 0),
-      Triangle04: Filter(src.Triangle04, fre, 0),
-      Triangle08: Filter(src.Triangle08, fre, 0),
-      Triangle10: Filter(src.Triangle10, fre, 0),
-      Triangle20: Filter(src.Triangle20, fre, 0),
-      Triangle40: Filter(src.Triangle40, fre, 0),
-      Triangle80: Filter(src.Triangle80, fre, 0),
+      Sawtooth04: lowSawtooth04,
+      Sawtooth08: lowSawtooth08,
+      Sawtooth10: lowSawtooth10,
+      Sawtooth20: lowSawtooth20,
+      Sawtooth40: lowSawtooth40,
+      Sawtooth80: lowSawtooth80,
+      Triangle04: lowTriangle04,
+      Triangle08: lowTriangle08,
+      Triangle10: lowTriangle10,
+      Triangle20: lowTriangle20,
+      Triangle40: lowTriangle40,
+      Triangle80: lowTriangle80,
       Squares: dstLowSquares,
-      WhiteNoiseBig: Filter(src.WhiteNoiseBig, fre, 0),
+      WhiteNoiseBig: lowWhiteNoiseBig,
     };
     const dstHigh: FilterWaveform = {
-      Sawtooth04: Filter(src.Sawtooth04, fre, 1),
-      Sawtooth08: Filter(src.Sawtooth08, fre, 1),
-      Sawtooth10: Filter(src.Sawtooth10, fre, 1),
-      Sawtooth20: Filter(src.Sawtooth20, fre, 1),
-      Sawtooth40: Filter(src.Sawtooth40, fre, 1),
-      Sawtooth80: Filter(src.Sawtooth80, fre, 1),
-      Triangle04: Filter(src.Triangle04, fre, 1),
-      Triangle08: Filter(src.Triangle08, fre, 1),
-      Triangle10: Filter(src.Triangle10, fre, 1),
-      Triangle20: Filter(src.Triangle20, fre, 1),
-      Triangle40: Filter(src.Triangle40, fre, 1),
-      Triangle80: Filter(src.Triangle80, fre, 1),
+      Sawtooth04: highSawtooth04,
+      Sawtooth08: highSawtooth08,
+      Sawtooth10: highSawtooth10,
+      Sawtooth20: highSawtooth20,
+      Sawtooth40: highSawtooth40,
+      Sawtooth80: highSawtooth80,
+      Triangle04: highTriangle04,
+      Triangle08: highTriangle08,
+      Triangle10: highTriangle10,
+      Triangle20: highTriangle20,
+      Triangle40: highTriangle40,
+      Triangle80: highTriangle80,
       Squares: dstHighSquares,
-      WhiteNoiseBig: Filter(src.WhiteNoiseBig, fre, 1),
+      WhiteNoiseBig: highWhiteNoiseBig,
     };
 
     filterSets[temp] = dstLow;
