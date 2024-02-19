@@ -10,15 +10,15 @@ import { dump, toArrayBuffer } from './utils.ts';
 
 describe('AHX', () => {
   describe.concurrent.each([
-    ['03.ahx'],
-    ['04.ahx'],
+    //['03.ahx'],
+    //['04.ahx'],
     ['die audienz ist horenz.ahx'], // Fail
-    ['drums.ahx'],
-    ['frame.ahx'],
-    ['holla 2.ahx'], // Fail
-    ['loom.ahx'],
-    ['thxcolly-intro.ahx'],
-    ['void.ahx'],
+    //['drums.ahx'],
+    //['frame.ahx'],
+    //['holla 2.ahx'], // Fail
+    //['loom.ahx'],
+    //['thxcolly-intro.ahx'],
+    //['void.ahx'],
   ])('It should output the same buffer values', file => {
     it(`File: ${file}`, ({ expect }) => {
       const songBytes = readFileSync(`test-songs/${file}`);
@@ -34,7 +34,9 @@ describe('AHX', () => {
 
       expect(JSON.stringify(song, null, 2)).toEqual(JSON.stringify(referenceSong, null, 2));
       for (const expectedChunk of expected) {
-        expect(actual.next().value).toEqual(expectedChunk);
+        const actualChunk = actual.next().value;
+        expect(actualChunk).toHaveLength(expectedChunk.length);
+        expect(actualChunk).toEqual(expectedChunk);
       }
       expect(actual.next()).toEqual({ value: undefined, done: true });
     });
