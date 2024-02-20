@@ -557,6 +557,11 @@ function Filter(input: number[], fre: number): [low: number[], high: number[]] {
     high = clamp(input[i] - mid - low, -128.0, 127.0);
     mid = clamp(mid + high * fre, -128.0, 127.0);
     low = clamp(low + mid * fre, -128.0, 127.0);
+  }
+  for (let i = 0; i < input.length; i++) {
+    high = clamp(input[i] - mid - low, -128.0, 127.0);
+    mid = clamp(mid + high * fre, -128.0, 127.0);
+    low = clamp(low + mid * fre, -128.0, 127.0);
     outputLow[i] = Math.floor(low);
     outputHigh[i] = Math.floor(high);
   }
@@ -567,10 +572,10 @@ function GenerateFilterWaveforms(filterSets: FilterWaveform[]) {
   const src = filterSets[31];
   let freq = 8;
   let temp = 0;
-  const fre = (freq * 1.25) / 100.0;
   while (temp < 31) {
     let dstLowSquares: number[] = [];
     let dstHighSquares: number[] = [];
+    const fre = (freq * 1.25) / 100.0;
     // squares alle einzeln filtern
     for (let i = 0; i < 0x20; i++) {
       const square = src.Squares.slice(i * 0x80, (i + 1) * 0x80);

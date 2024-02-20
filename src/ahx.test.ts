@@ -1,26 +1,27 @@
 import { readFileSync } from 'node:fs';
-import { describe, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   dataType as DataType,
   AHXOutput as ReferenceOutput,
   AHXSong as ReferenceSong,
+  AHXWaves as ReferenceWaves,
 } from './ahx.reference-implementation.js';
-import { AHXOutput, AHXSong } from './ahx.ts';
+import { AHXOutput, AHXSong, getAHXWaves } from './ahx.ts';
 import { dump, toArrayBuffer } from './utils.ts';
 
 describe('test AHX', () => {
   describe.concurrent.each([
-    //['03.ahx'],
-    //['04.ahx'],
-    ['die audienz ist horenz.ahx'], // Fail
-    //['drums.ahx'],
-    //['frame.ahx'],
-    //['holla 2.ahx'], // Fail
-    //['loom.ahx'],
-    //['thxcolly-intro.ahx'],
-    //['void.ahx'],
+    ['03.ahx'],
+    ['04.ahx'],
+    ['die audienz ist horenz.ahx'],
+    ['drums.ahx'],
+    ['frame.ahx'],
+    ['holla 2.ahx'],
+    ['loom.ahx'],
+    ['thxcolly-intro.ahx'],
+    ['void.ahx'],
   ])('it should output the same buffer values', file => {
-    it(`file: `, ({ expect }) => {
+    it(`file: ${file}`, ({ expect }) => {
       const songBytes = readFileSync(`test-songs/${file}`);
 
       const binString = new DataType();
@@ -40,5 +41,11 @@ describe('test AHX', () => {
       }
       expect(actual.next()).toEqual({ value: undefined, done: true });
     });
+  });
+
+  it('should generate the same waves', () => {
+    const expected = ReferenceWaves().FilterSets;
+    const actual = getAHXWaves();
+    expect(actual).toEqual(expected);
   });
 });

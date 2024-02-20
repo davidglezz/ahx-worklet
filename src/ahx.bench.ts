@@ -42,10 +42,10 @@ beforeAll(async () => {
   songs = [
     '03.ahx',
     '04.ahx',
-    //'die audienz ist horenz.ahx', // Fail
+    'die audienz ist horenz.ahx',
     'drums.ahx',
     'frame.ahx',
-    //'holla 2.ahx', // Fail
+    'holla 2.ahx',
     'loom.ahx',
     'thxcolly-intro.ahx',
     'void.ahx',

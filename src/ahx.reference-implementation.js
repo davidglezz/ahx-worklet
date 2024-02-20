@@ -332,7 +332,7 @@ function AHXVoice() {
 	}
 }
 
-function AHXWaves() {
+export function AHXWaves() {
 	this.GenerateTriangle = function(Len) {
 		var Buffer = [];
 		var d2 = Len;
