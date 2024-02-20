@@ -367,7 +367,7 @@ export function resetComputedAHXWaves() {
   computedAHXWaves = undefined;
 }
 
-function buildAHXWaves() {
+export function buildAHXWaves() {
   const filterSets: AHXWaves = Array.from({ length: 31 + 1 + 31 });
   filterSets[31] = {
     Sawtooth04: GenerateSawtooth(0x04),

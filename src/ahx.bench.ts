@@ -1,11 +1,12 @@
 import fs from 'node:fs';
-import { beforeAll, describe } from 'vitest';
+import { beforeAll, bench, describe } from 'vitest';
 import {
   dataType as DataType,
   AHXOutput as ReferenceOutput,
   AHXSong as ReferenceSong,
+  AHXWaves as ReferenceWaves,
 } from './ahx.reference-implementation.js';
-import { AHXOutput, AHXSong, resetComputedAHXWaves } from './ahx.ts';
+import { AHXOutput, AHXSong, buildAHXWaves, resetComputedAHXWaves } from './ahx.ts';
 import { dump, toArrayBuffer } from './utils.ts';
 
 const options = { time: 1000, iterations: 5 };
@@ -66,6 +67,15 @@ describe('load song', () => {
   );
 
   bench('new implementation', () => songs.forEach(song => new AHXSong(song.arrayBuffer)), options);
+});
+
+describe('generate the waves', () => {
+  bench('reference implementation', () => {
+    ReferenceWaves();
+  });
+  bench('new implementation', () => {
+    buildAHXWaves();
+  });
 });
 
 describe('render song', () => {
