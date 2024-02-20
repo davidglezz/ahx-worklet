@@ -5,17 +5,21 @@ import {
   AHXOutput as ReferenceOutput,
   AHXSong as ReferenceSong,
 } from './ahx.reference-implementation.js';
-import { AHXOutput, AHXSong } from './ahx.ts';
+import { AHXOutput, AHXSong, resetComputedAHXWaves } from './ahx.ts';
 import { dump, toArrayBuffer } from './utils.ts';
-import { resetComputedAHXWaves } from './AHXWaves.ts';
 
 const options = { time: 1000, iterations: 5 };
 
-function referenceImplementationDump(stringBytes: string) {
+function referenceImplementationLoad(stringBytes: string) {
   const binString = new DataType();
   binString.data = stringBytes;
   const referenceSong = new ReferenceSong();
   referenceSong.InitSong(binString);
+  return referenceSong;
+}
+
+function referenceImplementationDump(stringBytes: string) {
+  const referenceSong = referenceImplementationLoad(stringBytes);
   return dump(ReferenceOutput(), referenceSong);
 }
 
@@ -31,34 +35,43 @@ function runGenerator(generator: Generator<number[]>) {
   }
 }
 
-describe('it should perform better than reference implementation', () => {
-  let songs: { stringBytes: string; arrayBuffer: ArrayBuffer }[] = [];
+let songs: { stringBytes: string; arrayBuffer: ArrayBuffer }[] = [];
 
-  beforeAll(async () => {
-    songs = [
-      // '03.ahx',
-      // '04.ahx',
-      //'die audienz ist horenz.ahx'], // Fail
-      // 'drums.ahx',
-      // 'frame.ahx',
-      //'holla 2.ahx', // Fail
-      // 'loom.ahx',
-      'thxcolly-intro.ahx',
-      // 'void.ahx',
-    ].map(filename => {
-      const buffer = fs.readFileSync(`test-songs/${filename}`);
-      return {
-        stringBytes: String.fromCharCode(...buffer),
-        arrayBuffer: toArrayBuffer(buffer),
-      };
-    });
+beforeAll(async () => {
+  songs = [
+    '03.ahx',
+    '04.ahx',
+    //'die audienz ist horenz.ahx', // Fail
+    'drums.ahx',
+    'frame.ahx',
+    //'holla 2.ahx', // Fail
+    'loom.ahx',
+    'thxcolly-intro.ahx',
+    'void.ahx',
+  ].map(filename => {
+    const buffer = fs.readFileSync(`test-songs/${filename}`);
+    return {
+      stringBytes: String.fromCharCode(...buffer),
+      arrayBuffer: toArrayBuffer(buffer),
+    };
   });
+});
 
+describe('load song', () => {
+  bench(
+    'reference implementation',
+    () => songs.forEach(song => referenceImplementationLoad(song.stringBytes)),
+    options,
+  );
+
+  bench('new implementation', () => songs.forEach(song => new AHXSong(song.arrayBuffer)), options);
+});
+
+describe('render song', () => {
   describe('single song', () => {
     bench(
       'reference implementation',
       () => songs.forEach(song => runGenerator(referenceImplementationDump(song.stringBytes))),
-      options,
     );
 
     bench(
@@ -68,7 +81,6 @@ describe('it should perform better than reference implementation', () => {
           runGenerator(newImplementationDump(song.arrayBuffer));
           resetComputedAHXWaves();
         }),
-      options,
     );
   });
 
@@ -76,13 +88,11 @@ describe('it should perform better than reference implementation', () => {
     bench(
       'reference implementation',
       () => songs.forEach(song => runGenerator(referenceImplementationDump(song.stringBytes))),
-      options,
     );
 
     bench(
       'new implementation',
       () => songs.forEach(song => runGenerator(newImplementationDump(song.arrayBuffer))),
-      options,
     );
   });
 });
