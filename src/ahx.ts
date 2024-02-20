@@ -355,7 +355,7 @@ export class AHXVoice {
 }
 
 let computedAHXWaves: AHXWaves | undefined;
-export function AHXWaves(): AHXWaves {
+export function getAHXWaves(): AHXWaves {
   if (!computedAHXWaves) {
     computedAHXWaves = buildAHXWaves();
     Object.freeze(computedAHXWaves);
@@ -648,7 +648,7 @@ export class AHXPlayer {
   NoteNr = 0;
   PosJumpNote = 0;
   WaveformTab = [0, 0, 0, 0];
-  WavesFilterSets = AHXWaves();
+  WavesFilterSets = getAHXWaves();
   Voices: AHXVoice[] & { length: 0 | 4 } = [];
   WNRandom = 0;
   Song!: AHXSong;

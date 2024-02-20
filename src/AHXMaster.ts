@@ -21,14 +21,11 @@ function AHXMasterWebKit(output) {
     this.bufferOffset = 0;
     if (this.AudioNode) this.AudioNode.disconnect();
     this.AudioNode = this.AudioContext.createScriptProcessor(this.bufferSize);
-    const theMaster = this;
-    this.AudioNode.onaudioprocess = function (event) {
-      theMaster.mixer(event);
-    };
+    this.AudioNode.onaudioprocess = event => this.mixer(event);
     this.AudioNode.connect(this.AudioContext.destination);
   };
 
-  this.mixer = function (e) {
+  this.mixer = function (e: AudioProcessingEvent) {
     let want = this.bufferSize;
 
     const buffer = e.outputBuffer;
@@ -126,12 +123,8 @@ function AHXMasterMoz(output) {
     this.sampleRate = 44100;
     this.bufferFull = 0;
     this.bufferOffset = 0;
-
-    const theMaster = this;
     this.Output.Init(this.sampleRate, 16);
-    this.audioDestination = new AudioDataDestination(this.sampleRate, s => {
-      theMaster.mixer(s);
-    });
+    this.audioDestination = new AudioDataDestination(this.sampleRate, s => this.mixer(s));
   };
 
   this.mixer = function (soundData) {

@@ -8,7 +8,7 @@ import {
 import { AHXOutput, AHXSong } from './ahx.ts';
 import { dump, toArrayBuffer } from './utils.ts';
 
-describe('AHX', () => {
+describe('test AHX', () => {
   describe.concurrent.each([
     //['03.ahx'],
     //['04.ahx'],
@@ -19,8 +19,8 @@ describe('AHX', () => {
     //['loom.ahx'],
     //['thxcolly-intro.ahx'],
     //['void.ahx'],
-  ])('It should output the same buffer values', file => {
-    it(`File: ${file}`, ({ expect }) => {
+  ])('it should output the same buffer values', file => {
+    it(`file: `, ({ expect }) => {
       const songBytes = readFileSync(`test-songs/${file}`);
 
       const binString = new DataType();

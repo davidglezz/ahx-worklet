@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { beforeAll, bench, describe } from 'vitest';
+import { beforeAll, describe } from 'vitest';
 import {
   dataType as DataType,
   AHXOutput as ReferenceOutput,
@@ -33,6 +33,7 @@ function runGenerator(generator: Generator<number[]>) {
   for (const chunk of generator) {
     size += chunk.length;
   }
+  return size > 0;
 }
 
 let songs: { stringBytes: string; arrayBuffer: ArrayBuffer }[] = [];
@@ -69,30 +70,25 @@ describe('load song', () => {
 
 describe('render song', () => {
   describe('single song', () => {
-    bench(
-      'reference implementation',
-      () => songs.forEach(song => runGenerator(referenceImplementationDump(song.stringBytes))),
+    bench('reference implementation', () =>
+      songs.forEach(song => runGenerator(referenceImplementationDump(song.stringBytes))),
     );
 
-    bench(
-      'new implementation',
-      () =>
-        songs.forEach(song => {
-          runGenerator(newImplementationDump(song.arrayBuffer));
-          resetComputedAHXWaves();
-        }),
+    bench('new implementation', () =>
+      songs.forEach(song => {
+        runGenerator(newImplementationDump(song.arrayBuffer));
+        resetComputedAHXWaves();
+      }),
     );
   });
 
   describe('multiple songs', () => {
-    bench(
-      'reference implementation',
-      () => songs.forEach(song => runGenerator(referenceImplementationDump(song.stringBytes))),
+    bench('reference implementation', () =>
+      songs.forEach(song => runGenerator(referenceImplementationDump(song.stringBytes))),
     );
 
-    bench(
-      'new implementation',
-      () => songs.forEach(song => runGenerator(newImplementationDump(song.arrayBuffer))),
+    bench('new implementation', () =>
+      songs.forEach(song => runGenerator(newImplementationDump(song.arrayBuffer))),
     );
   });
 });
