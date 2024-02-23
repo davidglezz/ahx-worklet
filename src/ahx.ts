@@ -29,13 +29,14 @@ export interface AHXInstrument {
 
 // eslint-disable-next-line no-restricted-syntax
 const enum Waveform {
-  TRIANGLE = 0,
-  SAWTOOTH = 1,
-  SQUARE = 2,
-  WNOISE = 3,
+  TRIANGLE = 1,
+  SAWTOOTH = 2,
+  SQUARE = 3,
+  WNOISE = 4,
 }
 
 export type AHXWaves = [
+  empty: undefined,
   Triangle: [
     len04: number[],
     len08: number[],
@@ -292,8 +293,8 @@ export class AHXVoice {
   NoteMaxVolume = 0;
   PerfSubVolume = 0;
   TrackMasterVolume = 0x40;
-  NewWaveform = 0;
-  Waveform: Waveform = 0;
+  NewWaveform: boolean = false;
+  Waveform: Waveform = 1;
   PlantSquare = 0;
   PlantPeriod = 0;
   IgnoreSquare = 0;
@@ -384,6 +385,7 @@ export function resetComputedAHXWaves() {
 export function buildAHXWaves() {
   const filterSets: AHXWaves = Array.from({ length: 31 + 1 + 31 });
   filterSets[31] = [
+    undefined,
     [
       GenerateTriangle(0x04),
       GenerateTriangle(0x08),
@@ -617,12 +619,14 @@ function GenerateFilterWaveforms(filterSets: AHXWaves) {
     const [lowWhiteNoiseBig, highWhiteNoiseBig] = Filter(src[Waveform.WNOISE], fre);
 
     const dstLow: AHXWaves[number] = [
+      undefined,
       [lowTriangle04, lowTriangle08, lowTriangle10, lowTriangle20, lowTriangle40, lowTriangle80],
       [lowSawtooth04, lowSawtooth08, lowSawtooth10, lowSawtooth20, lowSawtooth40, lowSawtooth80],
       dstLowSquares,
       lowWhiteNoiseBig,
     ];
     const dstHigh: AHXWaves[number] = [
+      undefined,
       [
         highTriangle04,
         highTriangle08,
@@ -664,7 +668,6 @@ export class AHXPlayer {
   PosJump = 0;
   NoteNr = 0;
   PosJumpNote = 0;
-  WaveformTab = [0, 0, 0, 0];
   Waves = getAHXWaves();
   Voices!: AHXVoice[] & { length: 4 };
   WNRandom = 0;
@@ -1050,8 +1053,8 @@ export class AHXPlayer {
         const Cur = voice.PerfCurrent++;
         voice.PerfWait = voice.PerfSpeed;
         if (voice.PerfList.Entries[Cur].Waveform) {
-          voice.Waveform = voice.PerfList.Entries[Cur].Waveform - 1;
-          voice.NewWaveform = 1;
+          voice.Waveform = voice.PerfList.Entries[Cur].Waveform;
+          voice.NewWaveform = true;
           voice.PeriodPerfSlideSpeed = voice.PeriodPerfSlidePeriod = 0;
         }
         //Holdwave
@@ -1134,7 +1137,7 @@ export class AHXPlayer {
         d3 += voice.FilterSign;
       }
       voice.FilterPos = d3;
-      voice.NewWaveform = 1;
+      voice.NewWaveform = true;
       voice.FilterWait = voice.FilterSpeed - 3;
       if (voice.FilterWait < 1) voice.FilterWait = 1;
     }
@@ -1156,13 +1159,13 @@ export class AHXPlayer {
         voice.AudioSource[i] = SquarePtr[SquareOfs];
         SquareOfs += Delta;
       }
-      voice.NewWaveform = 1;
+      voice.NewWaveform = true;
       voice.Waveform = Waveform.SQUARE;
       voice.PlantSquare = 0;
     }
     if (voice.Waveform === Waveform.WNOISE)
       // white noise
-      voice.NewWaveform = 1;
+      voice.NewWaveform = true;
 
     if (voice.NewWaveform) {
       if (voice.Waveform !== Waveform.SQUARE) {
@@ -1241,7 +1244,7 @@ export class AHXPlayer {
             voice.FilterPos = voice.IgnoreFilter;
             voice.IgnoreFilter = 0;
           } else voice.FilterPos = FXParam;
-          voice.NewWaveform = 1;
+          voice.NewWaveform = true;
         }
         break;
       case 1:
