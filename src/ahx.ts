@@ -27,24 +27,31 @@ export interface AHXInstrument {
   PList: AHXPList;
 }
 
-export interface FilterWaveform {
-  Sawtooth04: number[];
-  Sawtooth08: number[];
-  Sawtooth10: number[];
-  Sawtooth20: number[];
-  Sawtooth40: number[];
-  Sawtooth80: number[];
-  Triangle04: number[];
-  Triangle08: number[];
-  Triangle10: number[];
-  Triangle20: number[];
-  Triangle40: number[];
-  Triangle80: number[];
-  Squares: number[];
-  WhiteNoiseBig: number[];
-}
+const TRIANGLE = 0;
+const SAWTOOTH = 1;
+const SQUARE = 2;
+const WNOISE = 3;
 
-export type AHXWaves = FilterWaveform[];
+export type AHXWaves = [
+  Triangle: [
+    len04: number[],
+    len08: number[],
+    len10: number[],
+    len20: number[],
+    len40: number[],
+    len80: number[],
+  ],
+  Sawtooth: [
+    len04: number[],
+    len08: number[],
+    len10: number[],
+    len20: number[],
+    len40: number[],
+    len80: number[],
+  ],
+  Squares: number[],
+  WhiteNoiseBig: number[],
+][];
 
 export interface AHXPosition {
   Track: number[];
@@ -369,22 +376,26 @@ export function resetComputedAHXWaves() {
 
 export function buildAHXWaves() {
   const filterSets: AHXWaves = Array.from({ length: 31 + 1 + 31 });
-  filterSets[31] = {
-    Sawtooth04: GenerateSawtooth(0x04),
-    Sawtooth08: GenerateSawtooth(0x08),
-    Sawtooth10: GenerateSawtooth(0x10),
-    Sawtooth20: GenerateSawtooth(0x20),
-    Sawtooth40: GenerateSawtooth(0x40),
-    Sawtooth80: GenerateSawtooth(0x80),
-    Triangle04: GenerateTriangle(0x04),
-    Triangle08: GenerateTriangle(0x08),
-    Triangle10: GenerateTriangle(0x10),
-    Triangle20: GenerateTriangle(0x20),
-    Triangle40: GenerateTriangle(0x40),
-    Triangle80: GenerateTriangle(0x80),
-    Squares: GenerateSquare(),
-    WhiteNoiseBig: GenerateWhiteNoise(0x280 * 3),
-  };
+  filterSets[31] = [
+    [
+      GenerateTriangle(0x04),
+      GenerateTriangle(0x08),
+      GenerateTriangle(0x10),
+      GenerateTriangle(0x20),
+      GenerateTriangle(0x40),
+      GenerateTriangle(0x80),
+    ],
+    [
+      GenerateSawtooth(0x04),
+      GenerateSawtooth(0x08),
+      GenerateSawtooth(0x10),
+      GenerateSawtooth(0x20),
+      GenerateSawtooth(0x40),
+      GenerateSawtooth(0x80),
+    ],
+    GenerateSquare(),
+    GenerateWhiteNoise(0x280 * 3),
+  ];
   GenerateFilterWaveforms(filterSets);
   return filterSets;
 }
@@ -568,7 +579,7 @@ function Filter(input: number[], fre: number): [low: number[], high: number[]] {
   return [outputLow, outputHigh];
 }
 
-function GenerateFilterWaveforms(filterSets: FilterWaveform[]) {
+function GenerateFilterWaveforms(filterSets: AHXWaves) {
   const src = filterSets[31];
   let freq = 8;
   let temp = 0;
@@ -578,58 +589,52 @@ function GenerateFilterWaveforms(filterSets: FilterWaveform[]) {
     const fre = (freq * 1.25) / 100.0;
     // squares alle einzeln filtern
     for (let i = 0; i < 0x20; i++) {
-      const square = src.Squares.slice(i * 0x80, (i + 1) * 0x80);
+      const square = src[SQUARE].slice(i * 0x80, (i + 1) * 0x80);
       const [dstLowSquare, dstHighSquare] = Filter(square, fre);
       dstLowSquares = dstLowSquares.concat(dstLowSquare);
       dstHighSquares = dstHighSquares.concat(dstHighSquare);
     }
 
-    const [lowSawtooth04, highSawtooth04] = Filter(src.Sawtooth04, fre);
-    const [lowSawtooth08, highSawtooth08] = Filter(src.Sawtooth08, fre);
-    const [lowSawtooth10, highSawtooth10] = Filter(src.Sawtooth10, fre);
-    const [lowSawtooth20, highSawtooth20] = Filter(src.Sawtooth20, fre);
-    const [lowSawtooth40, highSawtooth40] = Filter(src.Sawtooth40, fre);
-    const [lowSawtooth80, highSawtooth80] = Filter(src.Sawtooth80, fre);
-    const [lowTriangle04, highTriangle04] = Filter(src.Triangle04, fre);
-    const [lowTriangle08, highTriangle08] = Filter(src.Triangle08, fre);
-    const [lowTriangle10, highTriangle10] = Filter(src.Triangle10, fre);
-    const [lowTriangle20, highTriangle20] = Filter(src.Triangle20, fre);
-    const [lowTriangle40, highTriangle40] = Filter(src.Triangle40, fre);
-    const [lowTriangle80, highTriangle80] = Filter(src.Triangle80, fre);
-    const [lowWhiteNoiseBig, highWhiteNoiseBig] = Filter(src.WhiteNoiseBig, fre);
+    const [lowTriangle04, highTriangle04] = Filter(src[TRIANGLE][0], fre);
+    const [lowTriangle08, highTriangle08] = Filter(src[TRIANGLE][1], fre);
+    const [lowTriangle10, highTriangle10] = Filter(src[TRIANGLE][2], fre);
+    const [lowTriangle20, highTriangle20] = Filter(src[TRIANGLE][3], fre);
+    const [lowTriangle40, highTriangle40] = Filter(src[TRIANGLE][4], fre);
+    const [lowTriangle80, highTriangle80] = Filter(src[TRIANGLE][5], fre);
+    const [lowSawtooth04, highSawtooth04] = Filter(src[SAWTOOTH][0], fre);
+    const [lowSawtooth08, highSawtooth08] = Filter(src[SAWTOOTH][1], fre);
+    const [lowSawtooth10, highSawtooth10] = Filter(src[SAWTOOTH][2], fre);
+    const [lowSawtooth20, highSawtooth20] = Filter(src[SAWTOOTH][3], fre);
+    const [lowSawtooth40, highSawtooth40] = Filter(src[SAWTOOTH][4], fre);
+    const [lowSawtooth80, highSawtooth80] = Filter(src[SAWTOOTH][5], fre);
+    const [lowWhiteNoiseBig, highWhiteNoiseBig] = Filter(src[WNOISE], fre);
 
-    const dstLow: FilterWaveform = {
-      Sawtooth04: lowSawtooth04,
-      Sawtooth08: lowSawtooth08,
-      Sawtooth10: lowSawtooth10,
-      Sawtooth20: lowSawtooth20,
-      Sawtooth40: lowSawtooth40,
-      Sawtooth80: lowSawtooth80,
-      Triangle04: lowTriangle04,
-      Triangle08: lowTriangle08,
-      Triangle10: lowTriangle10,
-      Triangle20: lowTriangle20,
-      Triangle40: lowTriangle40,
-      Triangle80: lowTriangle80,
-      Squares: dstLowSquares,
-      WhiteNoiseBig: lowWhiteNoiseBig,
-    };
-    const dstHigh: FilterWaveform = {
-      Sawtooth04: highSawtooth04,
-      Sawtooth08: highSawtooth08,
-      Sawtooth10: highSawtooth10,
-      Sawtooth20: highSawtooth20,
-      Sawtooth40: highSawtooth40,
-      Sawtooth80: highSawtooth80,
-      Triangle04: highTriangle04,
-      Triangle08: highTriangle08,
-      Triangle10: highTriangle10,
-      Triangle20: highTriangle20,
-      Triangle40: highTriangle40,
-      Triangle80: highTriangle80,
-      Squares: dstHighSquares,
-      WhiteNoiseBig: highWhiteNoiseBig,
-    };
+    const dstLow: AHXWaves[number] = [
+      [lowTriangle04, lowTriangle08, lowTriangle10, lowTriangle20, lowTriangle40, lowTriangle80],
+      [lowSawtooth04, lowSawtooth08, lowSawtooth10, lowSawtooth20, lowSawtooth40, lowSawtooth80],
+      dstLowSquares,
+      lowWhiteNoiseBig,
+    ];
+    const dstHigh: AHXWaves[number] = [
+      [
+        highTriangle04,
+        highTriangle08,
+        highTriangle10,
+        highTriangle20,
+        highTriangle40,
+        highTriangle80,
+      ],
+      [
+        highSawtooth04,
+        highSawtooth08,
+        highSawtooth10,
+        highSawtooth20,
+        highSawtooth40,
+        highSawtooth80,
+      ],
+      dstHighSquares,
+      highWhiteNoiseBig,
+    ];
 
     filterSets[temp] = dstLow;
     filterSets[temp + 32] = dstHigh;
@@ -653,7 +658,7 @@ export class AHXPlayer {
   NoteNr = 0;
   PosJumpNote = 0;
   WaveformTab = [0, 0, 0, 0];
-  WavesFilterSets = getAHXWaves();
+  Waves = getAHXWaves();
   Voices: AHXVoice[] & { length: 0 | 4 } = [];
   WNRandom = 0;
   Song!: AHXSong;
@@ -1149,9 +1154,9 @@ export class AHXPlayer {
       this.Voices[v].FilterWait = this.Voices[v].FilterSpeed - 3;
       if (this.Voices[v].FilterWait < 1) this.Voices[v].FilterWait = 1;
     }
-    if (this.Voices[v].Waveform === 3 - 1 || this.Voices[v].PlantSquare) {
+    if (this.Voices[v].Waveform === SQUARE || this.Voices[v].PlantSquare) {
       //CalcSquare
-      const SquarePtr = this.WavesFilterSets[toSixtyTwo(this.Voices[v].FilterPos - 1)].Squares;
+      const SquarePtr = this.Waves[toSixtyTwo(this.Voices[v].FilterPos - 1)][SQUARE];
       let SquareOfs = 0;
       let X = this.Voices[v].SquarePos << (5 - this.Voices[v].WaveLength);
       if (X > 0x20) {
@@ -1161,7 +1166,6 @@ export class AHXPlayer {
       //OkDownSquare
       if (X--) SquareOfs = X * 0x80; // <- WTF!?
       const Delta = 32 >> this.Voices[v].WaveLength;
-      //WaveformTab[3-1] = this.Voices[v].SquareTempBuffer;
       const AudioLen = (1 << this.Voices[v].WaveLength) * 4;
       this.Voices[v].AudioSource = Array.from({ length: AudioLen });
       for (let i = 0; i < AudioLen; i++) {
@@ -1169,23 +1173,22 @@ export class AHXPlayer {
         SquareOfs += Delta;
       }
       this.Voices[v].NewWaveform = 1;
-      this.Voices[v].Waveform = 3 - 1;
+      this.Voices[v].Waveform = SQUARE;
       this.Voices[v].PlantSquare = 0;
     }
-    if (this.Voices[v].Waveform === 4 - 1)
+    if (this.Voices[v].Waveform === WNOISE)
       // white noise
       this.Voices[v].NewWaveform = 1;
 
     if (this.Voices[v].NewWaveform) {
-      if (this.Voices[v].Waveform !== 3 - 1) {
+      if (this.Voices[v].Waveform !== SQUARE) {
         // don't process square
-        let FilterSet = 31;
-        FilterSet = toSixtyTwo(this.Voices[v].FilterPos - 1);
+        const FilterSet = toSixtyTwo(this.Voices[v].FilterPos - 1);
 
-        if (this.Voices[v].Waveform === 4 - 1) {
+        if (this.Voices[v].Waveform === WNOISE) {
           // white noise
           const WNStart = this.WNRandom & (2 * 0x280 - 1) & ~1;
-          this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].WhiteNoiseBig.slice(
+          this.Voices[v].AudioSource = this.Waves[FilterSet][this.Voices[v].Waveform].slice(
             WNStart,
             WNStart + 0x280,
           );
@@ -1193,50 +1196,10 @@ export class AHXPlayer {
           //GoOnRandom
           this.WNRandom += 2239384;
           this.WNRandom = ((((this.WNRandom >> 8) | (this.WNRandom << 24)) + 782323) ^ 75) - 6735;
-        } else if (this.Voices[v].Waveform === 1 - 1) {
-          // triangle
-          switch (this.Voices[v].WaveLength) {
-            case 0:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle04;
-              break;
-            case 1:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle08;
-              break;
-            case 2:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle10;
-              break;
-            case 3:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle20;
-              break;
-            case 4:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle40;
-              break;
-            case 5:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Triangle80;
-              break;
-          }
-        } else if (this.Voices[v].Waveform === 2 - 1) {
-          // sawtooth
-          switch (this.Voices[v].WaveLength) {
-            case 0:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth04;
-              break;
-            case 1:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth08;
-              break;
-            case 2:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth10;
-              break;
-            case 3:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth20;
-              break;
-            case 4:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth40;
-              break;
-            case 5:
-              this.Voices[v].AudioSource = this.WavesFilterSets[FilterSet].Sawtooth80;
-              break;
-          }
+        } else {
+          // triangle / sawtooth
+          this.Voices[v].AudioSource =
+            this.Waves[FilterSet][this.Voices[v].Waveform][this.Voices[v].WaveLength];
         }
       }
     }

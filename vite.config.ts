@@ -5,9 +5,17 @@ export default defineConfig({
   test: {
     coverage: {
       provider: 'v8',
+      exclude: [
+        '**/*.bench.ts',
+        '**/*.d.ts',
+        'src/AHXMaster.ts',
+        'src/ahx.reference-implementation.js',
+        'src/main.ts',
+        'src/utils.ts',
+        'src/counter.ts',
+      ],
     },
     reporters: ['default'],
-    environment: 'jsdom',
   },
   resolve: {
     alias: [
