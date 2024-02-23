@@ -1079,7 +1079,7 @@ export class AHXPlayer {
       voice.PeriodPerfSlidePeriod -= voice.PeriodPerfSlideSpeed;
       if (voice.PeriodPerfSlidePeriod) voice.PlantPeriod = 1;
     }
-    if (voice.Waveform === 3 - 1 && voice.SquareOn) {
+    if (voice.Waveform === Waveform.SQUARE && voice.SquareOn) {
       if (--voice.SquareWait <= 0) {
         const d1 = voice.SquareLowerLimit;
         const d2 = voice.SquareUpperLimit;
@@ -1216,7 +1216,7 @@ export class AHXPlayer {
       voice.VoicePeriod = voice.AudioPeriod;
     }
     if (voice.NewWaveform) {
-      if (voice.Waveform === 4 - 1) {
+      if (voice.Waveform === Waveform.WNOISE) {
         // for white noise, copy whole 0x280 samples
         voice.VoiceBuffer = voice.AudioSource;
       } else {
