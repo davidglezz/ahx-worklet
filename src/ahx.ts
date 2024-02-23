@@ -88,7 +88,6 @@ const clamp = (v: number, min: number, max: number) =>
   v < min ? min
   : v > max ? max
   : v;
-const toSixtyTwo = (v: number) => clamp(v, 0, 62);
 
 export function readString(view: DataView, pos: number) {
   let str = '';
@@ -1141,7 +1140,7 @@ export class AHXPlayer {
     }
     if (voice.Waveform === Waveform.SQUARE || voice.PlantSquare) {
       //CalcSquare
-      const SquarePtr = this.Waves[toSixtyTwo(voice.FilterPos - 1)][Waveform.SQUARE];
+      const SquarePtr = this.Waves[clamp(voice.FilterPos - 1, 0, 62)][Waveform.SQUARE];
       let SquareOfs = 0;
       let X = voice.SquarePos << (5 - voice.WaveLength);
       if (X > 0x20) {
@@ -1168,7 +1167,7 @@ export class AHXPlayer {
     if (voice.NewWaveform) {
       if (voice.Waveform !== Waveform.SQUARE) {
         // don't process square
-        const FilterSet = toSixtyTwo(voice.FilterPos - 1);
+        const FilterSet = clamp(voice.FilterPos - 1, 0, 62);
 
         if (voice.Waveform === Waveform.WNOISE) {
           // white noise
@@ -1265,13 +1264,11 @@ export class AHXPlayer {
         } else {
           if (FXParam & 0x0f) {
             voice.SquareInit = voice.SquareOn ^= 1;
-            voice.SquareSign = 1;
-            if ((FXParam & 0x0f) === 0x0f) voice.SquareSign = -1;
+            voice.SquareSign = (FXParam & 0x0f) === 0x0f ? -1 : 1;
           }
           if (FXParam & 0xf0) {
             voice.FilterInit = voice.FilterOn ^= 1;
-            voice.FilterSign = 1;
-            if ((FXParam & 0xf0) === 0xf0) voice.FilterSign = -1;
+            voice.FilterSign = (FXParam & 0xf0) === 0xf0 ? -1 : 1;
           }
         }
         break;
