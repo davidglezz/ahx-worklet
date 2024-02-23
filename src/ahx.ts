@@ -27,10 +27,13 @@ export interface AHXInstrument {
   PList: AHXPList;
 }
 
-const TRIANGLE = 0;
-const SAWTOOTH = 1;
-const SQUARE = 2;
-const WNOISE = 3;
+// eslint-disable-next-line no-restricted-syntax
+const enum Waveform {
+  TRIANGLE = 0,
+  SAWTOOTH = 1,
+  SQUARE = 2,
+  WNOISE = 3,
+}
 
 export type AHXWaves = [
   Triangle: [
@@ -70,7 +73,7 @@ export type AHXTrack = AHXStep[];
 export interface AHXPlistEntry {
   Note: number;
   Fixed: number;
-  Waveform: number;
+  Waveform: Waveform;
   FX: [number, number];
   FXParam: [number, number];
 }
@@ -263,6 +266,7 @@ export class AHXSong {
 }
 
 export class AHXVoice {
+  number: number;
   // Read those variables for mixing!
   VoiceVolume = 0;
   VoicePeriod = 0;
@@ -290,7 +294,7 @@ export class AHXVoice {
   PerfSubVolume = 0;
   TrackMasterVolume = 0x40;
   NewWaveform = 0;
-  Waveform = 0;
+  Waveform: Waveform = 0;
   PlantSquare = 0;
   PlantPeriod = 0;
   IgnoreSquare = 0;
@@ -345,6 +349,10 @@ export class AHXVoice {
   AudioPeriod = 0;
   AudioVolume = 0;
   //SquareTempBuffer: new Array(0x80), //char SquareTempBuffer[0x80]: 0,
+
+  constructor(number: number) {
+    this.number = number;
+  }
 
   CalcADSR() {
     this.ADSR.aFrames = this.Instrument.Envelope.aFrames;
@@ -589,25 +597,25 @@ function GenerateFilterWaveforms(filterSets: AHXWaves) {
     const fre = (freq * 1.25) / 100.0;
     // squares alle einzeln filtern
     for (let i = 0; i < 0x20; i++) {
-      const square = src[SQUARE].slice(i * 0x80, (i + 1) * 0x80);
+      const square = src[Waveform.SQUARE].slice(i * 0x80, (i + 1) * 0x80);
       const [dstLowSquare, dstHighSquare] = Filter(square, fre);
       dstLowSquares = dstLowSquares.concat(dstLowSquare);
       dstHighSquares = dstHighSquares.concat(dstHighSquare);
     }
 
-    const [lowTriangle04, highTriangle04] = Filter(src[TRIANGLE][0], fre);
-    const [lowTriangle08, highTriangle08] = Filter(src[TRIANGLE][1], fre);
-    const [lowTriangle10, highTriangle10] = Filter(src[TRIANGLE][2], fre);
-    const [lowTriangle20, highTriangle20] = Filter(src[TRIANGLE][3], fre);
-    const [lowTriangle40, highTriangle40] = Filter(src[TRIANGLE][4], fre);
-    const [lowTriangle80, highTriangle80] = Filter(src[TRIANGLE][5], fre);
-    const [lowSawtooth04, highSawtooth04] = Filter(src[SAWTOOTH][0], fre);
-    const [lowSawtooth08, highSawtooth08] = Filter(src[SAWTOOTH][1], fre);
-    const [lowSawtooth10, highSawtooth10] = Filter(src[SAWTOOTH][2], fre);
-    const [lowSawtooth20, highSawtooth20] = Filter(src[SAWTOOTH][3], fre);
-    const [lowSawtooth40, highSawtooth40] = Filter(src[SAWTOOTH][4], fre);
-    const [lowSawtooth80, highSawtooth80] = Filter(src[SAWTOOTH][5], fre);
-    const [lowWhiteNoiseBig, highWhiteNoiseBig] = Filter(src[WNOISE], fre);
+    const [lowTriangle04, highTriangle04] = Filter(src[Waveform.TRIANGLE][0], fre);
+    const [lowTriangle08, highTriangle08] = Filter(src[Waveform.TRIANGLE][1], fre);
+    const [lowTriangle10, highTriangle10] = Filter(src[Waveform.TRIANGLE][2], fre);
+    const [lowTriangle20, highTriangle20] = Filter(src[Waveform.TRIANGLE][3], fre);
+    const [lowTriangle40, highTriangle40] = Filter(src[Waveform.TRIANGLE][4], fre);
+    const [lowTriangle80, highTriangle80] = Filter(src[Waveform.TRIANGLE][5], fre);
+    const [lowSawtooth04, highSawtooth04] = Filter(src[Waveform.SAWTOOTH][0], fre);
+    const [lowSawtooth08, highSawtooth08] = Filter(src[Waveform.SAWTOOTH][1], fre);
+    const [lowSawtooth10, highSawtooth10] = Filter(src[Waveform.SAWTOOTH][2], fre);
+    const [lowSawtooth20, highSawtooth20] = Filter(src[Waveform.SAWTOOTH][3], fre);
+    const [lowSawtooth40, highSawtooth40] = Filter(src[Waveform.SAWTOOTH][4], fre);
+    const [lowSawtooth80, highSawtooth80] = Filter(src[Waveform.SAWTOOTH][5], fre);
+    const [lowWhiteNoiseBig, highWhiteNoiseBig] = Filter(src[Waveform.WNOISE], fre);
 
     const dstLow: AHXWaves[number] = [
       [lowTriangle04, lowTriangle08, lowTriangle10, lowTriangle20, lowTriangle40, lowTriangle80],
@@ -659,7 +667,7 @@ export class AHXPlayer {
   PosJumpNote = 0;
   WaveformTab = [0, 0, 0, 0];
   Waves = getAHXWaves();
-  Voices: AHXVoice[] & { length: 0 | 4 } = [];
+  Voices!: AHXVoice[] & { length: 4 };
   WNRandom = 0;
   Song!: AHXSong;
   PlayingTime = 0;
@@ -698,7 +706,7 @@ export class AHXPlayer {
     this.GetNewPosition = 1;
     this.SongEndReached = 0;
     this.TimingValue = this.PlayingTime = 0;
-    this.Voices = [new AHXVoice(), new AHXVoice(), new AHXVoice(), new AHXVoice()];
+    this.Voices = [new AHXVoice(0), new AHXVoice(1), new AHXVoice(2), new AHXVoice(3)];
   }
 
   PlayIRQ() {
@@ -713,19 +721,19 @@ export class AHXPlayer {
           // Track range error? 02
           NextPos = this.Song.PositionNr - 1;
         }
-        for (let i = 0; i < 4; i++) {
-          this.Voices[i].Track = this.Song.Positions[this.PosNr].Track[i];
-          this.Voices[i].Transpose = this.Song.Positions[this.PosNr].Transpose[i];
-          this.Voices[i].NextTrack = this.Song.Positions[NextPos].Track[i];
-          this.Voices[i].NextTranspose = this.Song.Positions[NextPos].Transpose[i];
-        }
+        this.Voices.forEach(voice => {
+          voice.Track = this.Song.Positions[this.PosNr].Track[voice.number];
+          voice.Transpose = this.Song.Positions[this.PosNr].Transpose[voice.number];
+          voice.NextTrack = this.Song.Positions[NextPos].Track[voice.number];
+          voice.NextTranspose = this.Song.Positions[NextPos].Transpose[voice.number];
+        });
         this.GetNewPosition = 0;
       }
-      for (let i = 0; i < 4; i++) this.ProcessStep(i);
+      this.Voices.forEach(voice => this.ProcessStep(voice));
       this.StepWaitFrames = this.Tempo;
     }
     //DoFrameStuff
-    for (let i = 0; i < 4; i++) this.ProcessFrame(i);
+    this.Voices.forEach(voice => this.ProcessFrame(voice));
     this.PlayingTime++;
     if (this.Tempo > 0 && --this.StepWaitFrames <= 0) {
       if (!this.PatternBreak) {
@@ -750,7 +758,7 @@ export class AHXPlayer {
       }
     }
     //RemainPosition
-    for (let a = 0; a < 4; a++) this.SetAudio(a);
+    this.Voices.forEach(voice => this.SetAudio(voice));
   }
 
   NextPosition() {
@@ -767,24 +775,19 @@ export class AHXPlayer {
     this.GetNewPosition = 1;
   }
 
-  ProcessStep(v: number) {
-    if (!this.Voices[v].TrackOn) return;
-    this.Voices[v].VolumeSlideUp = this.Voices[v].VolumeSlideDown = 0;
+  ProcessStep(voice: AHXVoice) {
+    if (!voice.TrackOn) return;
+    voice.VolumeSlideUp = voice.VolumeSlideDown = 0;
 
-    let Note = this.Song.Tracks[this.Song.Positions[this.PosNr].Track[v]][this.NoteNr].Note;
-    const Instrument =
-      this.Song.Tracks[this.Song.Positions[this.PosNr].Track[v]][this.NoteNr].Instrument;
-    const FX = this.Song.Tracks[this.Song.Positions[this.PosNr].Track[v]][this.NoteNr].FX;
-    let FXParam = this.Song.Tracks[this.Song.Positions[this.PosNr].Track[v]][this.NoteNr].FXParam;
-
+    let { Note, Instrument, FX, FXParam } = this.Song.Tracks[voice.Track][this.NoteNr];
     switch (FX) {
       case 0x0: // Position Jump HI
         if ((FXParam & 0xf) > 0 && (FXParam & 0xf) <= 9) this.PosJump = FXParam & 0xf;
         break;
       case 0x5: // Volume Slide + Tone Portamento
       case 0xa: // Volume Slide
-        this.Voices[v].VolumeSlideDown = FXParam & 0x0f;
-        this.Voices[v].VolumeSlideUp = FXParam >> 4;
+        voice.VolumeSlideDown = FXParam & 0x0f;
+        voice.VolumeSlideUp = FXParam >> 4;
         break;
       case 0xb: // Position Jump
         this.PosJump = this.PosJump * 100 + (FXParam & 0x0f) + (FXParam >> 4) * 10;
@@ -800,21 +803,21 @@ export class AHXPlayer {
         switch (FXParam >> 4) {
           case 0xc: // Note Cut
             if ((FXParam & 0x0f) < this.Tempo) {
-              this.Voices[v].NoteCutWait = FXParam & 0x0f;
-              if (this.Voices[v].NoteCutWait) {
-                this.Voices[v].NoteCutOn = 1;
-                this.Voices[v].HardCutRelease = 0;
+              voice.NoteCutWait = FXParam & 0x0f;
+              if (voice.NoteCutWait) {
+                voice.NoteCutOn = 1;
+                voice.HardCutRelease = 0;
               }
             }
             break;
           case 0xd: // Note Delay
-            if (this.Voices[v].NoteDelayOn) {
-              this.Voices[v].NoteDelayOn = 0;
+            if (voice.NoteDelayOn) {
+              voice.NoteDelayOn = 0;
             } else {
               if ((FXParam & 0x0f) < this.Tempo) {
-                this.Voices[v].NoteDelayWait = FXParam & 0x0f;
-                if (this.Voices[v].NoteDelayWait) {
-                  this.Voices[v].NoteDelayOn = 1;
+                voice.NoteDelayWait = FXParam & 0x0f;
+                if (voice.NoteDelayWait) {
+                  voice.NoteDelayOn = 1;
                   return;
                 }
               }
@@ -827,54 +830,49 @@ export class AHXPlayer {
         break;
     }
     if (Instrument) {
-      this.Voices[v].PerfSubVolume = 0x40;
-      this.Voices[v].PeriodSlideSpeed =
-        this.Voices[v].PeriodSlidePeriod =
-        this.Voices[v].PeriodSlideLimit =
-          0;
-      this.Voices[v].ADSRVolume = 0;
+      voice.PerfSubVolume = 0x40;
+      voice.PeriodSlideSpeed = voice.PeriodSlidePeriod = voice.PeriodSlideLimit = 0;
+      voice.ADSRVolume = 0;
       if (Instrument < this.Song.Instruments.length) {
-        this.Voices[v].Instrument = this.Song.Instruments[Instrument];
+        voice.Instrument = this.Song.Instruments[Instrument];
       } else {
         // Overriding instrument
-        this.Voices[v].Instrument = this.Song.Instruments[0];
+        voice.Instrument = this.Song.Instruments[0];
       }
-      this.Voices[v].CalcADSR();
+      voice.CalcADSR();
       //InitOnInstrument
-      this.Voices[v].WaveLength = this.Voices[v].Instrument.WaveLength;
-      this.Voices[v].NoteMaxVolume = this.Voices[v].Instrument.Volume;
+      voice.WaveLength = voice.Instrument.WaveLength;
+      voice.NoteMaxVolume = voice.Instrument.Volume;
       //InitVibrato
-      this.Voices[v].VibratoCurrent = 0;
-      this.Voices[v].VibratoDelay = this.Voices[v].Instrument.VibratoDelay;
-      this.Voices[v].VibratoDepth = this.Voices[v].Instrument.VibratoDepth;
-      this.Voices[v].VibratoSpeed = this.Voices[v].Instrument.VibratoSpeed;
-      this.Voices[v].VibratoPeriod = 0;
+      voice.VibratoCurrent = 0;
+      voice.VibratoDelay = voice.Instrument.VibratoDelay;
+      voice.VibratoDepth = voice.Instrument.VibratoDepth;
+      voice.VibratoSpeed = voice.Instrument.VibratoSpeed;
+      voice.VibratoPeriod = 0;
       //InitHardCut
-      this.Voices[v].HardCutRelease = this.Voices[v].Instrument.HardCutRelease;
-      this.Voices[v].HardCut = this.Voices[v].Instrument.HardCutReleaseFrames;
+      voice.HardCutRelease = voice.Instrument.HardCutRelease;
+      voice.HardCut = voice.Instrument.HardCutReleaseFrames;
       //InitSquare
-      this.Voices[v].IgnoreSquare = this.Voices[v].SquareSlidingIn = 0;
-      this.Voices[v].SquareWait = this.Voices[v].SquareOn = 0;
-      let SquareLower =
-        this.Voices[v].Instrument.SquareLowerLimit >> (5 - this.Voices[v].WaveLength);
-      let SquareUpper =
-        this.Voices[v].Instrument.SquareUpperLimit >> (5 - this.Voices[v].WaveLength);
+      voice.IgnoreSquare = voice.SquareSlidingIn = 0;
+      voice.SquareWait = voice.SquareOn = 0;
+      let SquareLower = voice.Instrument.SquareLowerLimit >> (5 - voice.WaveLength);
+      let SquareUpper = voice.Instrument.SquareUpperLimit >> (5 - voice.WaveLength);
       if (SquareUpper < SquareLower) {
         const t = SquareUpper;
         SquareUpper = SquareLower;
         SquareLower = t;
       }
-      this.Voices[v].SquareUpperLimit = SquareUpper;
-      this.Voices[v].SquareLowerLimit = SquareLower;
+      voice.SquareUpperLimit = SquareUpper;
+      voice.SquareLowerLimit = SquareLower;
       //InitFilter
-      this.Voices[v].IgnoreFilter = this.Voices[v].FilterWait = this.Voices[v].FilterOn = 0;
-      this.Voices[v].FilterSlidingIn = 0;
-      let d6 = this.Voices[v].Instrument.FilterSpeed;
-      let d3 = this.Voices[v].Instrument.FilterLowerLimit;
-      let d4 = this.Voices[v].Instrument.FilterUpperLimit;
+      voice.IgnoreFilter = voice.FilterWait = voice.FilterOn = 0;
+      voice.FilterSlidingIn = 0;
+      let d6 = voice.Instrument.FilterSpeed;
+      let d3 = voice.Instrument.FilterLowerLimit;
+      let d4 = voice.Instrument.FilterUpperLimit;
       if (d3 & 0x80) d6 |= 0x20;
       if (d4 & 0x80) d6 |= 0x40;
-      this.Voices[v].FilterSpeed = d6;
+      voice.FilterSpeed = d6;
       d3 &= ~0x80;
       d4 &= ~0x80;
       if (d3 > d4) {
@@ -882,438 +880,415 @@ export class AHXPlayer {
         d3 = d4;
         d4 = t;
       }
-      this.Voices[v].FilterUpperLimit = d4;
-      this.Voices[v].FilterLowerLimit = d3;
-      this.Voices[v].FilterPos = 32;
+      voice.FilterUpperLimit = d4;
+      voice.FilterLowerLimit = d3;
+      voice.FilterPos = 32;
       //Init PerfList
-      this.Voices[v].PerfWait = this.Voices[v].PerfCurrent = 0;
-      this.Voices[v].PerfSpeed = this.Voices[v].Instrument.PList.Speed;
-      this.Voices[v].PerfList = this.Voices[v].Instrument.PList;
+      voice.PerfWait = voice.PerfCurrent = 0;
+      voice.PerfSpeed = voice.Instrument.PList.Speed;
+      voice.PerfList = voice.Instrument.PList;
     }
     //NoInstrument
-    this.Voices[v].PeriodSlideOn = 0;
+    voice.PeriodSlideOn = 0;
 
     switch (FX) {
       case 0x4: // Override filter
         break;
       case 0x9: // Set Squarewave-Offset
-        this.Voices[v].SquarePos = FXParam >> (5 - this.Voices[v].WaveLength);
-        this.Voices[v].PlantSquare = 1;
-        this.Voices[v].IgnoreSquare = 1;
+        voice.SquarePos = FXParam >> (5 - voice.WaveLength);
+        voice.PlantSquare = 1;
+        voice.IgnoreSquare = 1;
         break;
       case 0x5: // Tone Portamento + Volume Slide
       case 0x3: // Tone Portamento (Period Slide Up/Down w/ Limit)
-        if (FXParam !== 0) this.Voices[v].PeriodSlideSpeed = FXParam;
+        if (FXParam !== 0) voice.PeriodSlideSpeed = FXParam;
         if (Note) {
           let Neue = this.PeriodTable[Note];
-          let Alte = this.PeriodTable[this.Voices[v].TrackPeriod];
+          let Alte = this.PeriodTable[voice.TrackPeriod];
           Alte -= Neue;
-          Neue = Alte + this.Voices[v].PeriodSlidePeriod;
-          if (Neue) this.Voices[v].PeriodSlideLimit = -Alte;
+          Neue = Alte + voice.PeriodSlidePeriod;
+          if (Neue) voice.PeriodSlideLimit = -Alte;
         }
-        this.Voices[v].PeriodSlideOn = 1;
-        this.Voices[v].PeriodSlideWithLimit = 1;
+        voice.PeriodSlideOn = 1;
+        voice.PeriodSlideWithLimit = 1;
         Note = 0;
     }
 
     // Note anschlagen
     if (Note) {
-      this.Voices[v].TrackPeriod = Note;
-      this.Voices[v].PlantPeriod = 1;
+      voice.TrackPeriod = Note;
+      voice.PlantPeriod = 1;
     }
 
     switch (FX) {
       case 0x1: // Portamento up (Period slide down)
-        this.Voices[v].PeriodSlideSpeed = -FXParam;
-        this.Voices[v].PeriodSlideOn = 1;
-        this.Voices[v].PeriodSlideWithLimit = 0;
+        voice.PeriodSlideSpeed = -FXParam;
+        voice.PeriodSlideOn = 1;
+        voice.PeriodSlideWithLimit = 0;
         break;
       case 0x2: // Portamento down (Period slide up)
-        this.Voices[v].PeriodSlideSpeed = FXParam;
-        this.Voices[v].PeriodSlideOn = 1;
-        this.Voices[v].PeriodSlideWithLimit = 0;
+        voice.PeriodSlideSpeed = FXParam;
+        voice.PeriodSlideOn = 1;
+        voice.PeriodSlideWithLimit = 0;
         break;
       case 0xc: // Volume
-        if (FXParam <= 0x40) this.Voices[v].NoteMaxVolume = FXParam;
+        if (FXParam <= 0x40) voice.NoteMaxVolume = FXParam;
         else {
           FXParam -= 0x50;
           if (FXParam <= 0x40)
             for (let i = 0; i < 4; i++) this.Voices[i].TrackMasterVolume = FXParam;
           else {
             FXParam -= 0xa0 - 0x50;
-            if (FXParam <= 0x40) this.Voices[v].TrackMasterVolume = FXParam;
+            if (FXParam <= 0x40) voice.TrackMasterVolume = FXParam;
           }
         }
         break;
       case 0xe: // Enhanced commands
         switch (FXParam >> 4) {
           case 0x1: // Fineslide up (Period fineslide down)
-            this.Voices[v].PeriodSlidePeriod = -(FXParam & 0x0f);
-            this.Voices[v].PlantPeriod = 1;
+            voice.PeriodSlidePeriod = -(FXParam & 0x0f);
+            voice.PlantPeriod = 1;
             break;
           case 0x2: // Fineslide down (Period fineslide up)
-            this.Voices[v].PeriodSlidePeriod = FXParam & 0x0f;
-            this.Voices[v].PlantPeriod = 1;
+            voice.PeriodSlidePeriod = FXParam & 0x0f;
+            voice.PlantPeriod = 1;
             break;
           case 0x4: // Vibrato control
-            this.Voices[v].VibratoDepth = FXParam & 0x0f;
+            voice.VibratoDepth = FXParam & 0x0f;
             break;
           case 0xa: // Finevolume up
-            this.Voices[v].NoteMaxVolume += FXParam & 0x0f;
-            if (this.Voices[v].NoteMaxVolume > 0x40) this.Voices[v].NoteMaxVolume = 0x40;
+            voice.NoteMaxVolume += FXParam & 0x0f;
+            if (voice.NoteMaxVolume > 0x40) voice.NoteMaxVolume = 0x40;
             break;
           case 0xb: // Finevolume down
-            this.Voices[v].NoteMaxVolume -= FXParam & 0x0f;
-            if (this.Voices[v].NoteMaxVolume < 0) this.Voices[v].NoteMaxVolume = 0;
+            voice.NoteMaxVolume -= FXParam & 0x0f;
+            if (voice.NoteMaxVolume < 0) voice.NoteMaxVolume = 0;
             break;
         }
         break;
     }
   }
 
-  ProcessFrame(v: number) {
-    if (!this.Voices[v].TrackOn) return;
+  ProcessFrame(voice: AHXVoice) {
+    if (!voice.TrackOn) return;
 
-    if (this.Voices[v].NoteDelayOn) {
-      if (this.Voices[v].NoteDelayWait <= 0) this.ProcessStep(v);
-      else this.Voices[v].NoteDelayWait--;
+    if (voice.NoteDelayOn) {
+      if (voice.NoteDelayWait <= 0) this.ProcessStep(voice);
+      else voice.NoteDelayWait--;
     }
-    if (this.Voices[v].HardCut) {
+    if (voice.HardCut) {
       let NextInstrument;
       if (this.NoteNr + 1 < this.Song.TrackLength)
-        NextInstrument = this.Song.Tracks[this.Voices[v].Track][this.NoteNr + 1].Instrument;
-      else NextInstrument = this.Song.Tracks[this.Voices[v].NextTrack][0].Instrument;
+        NextInstrument = this.Song.Tracks[voice.Track][this.NoteNr + 1].Instrument;
+      else NextInstrument = this.Song.Tracks[voice.NextTrack][0].Instrument;
       if (NextInstrument) {
-        let d1 = this.Tempo - this.Voices[v].HardCut;
+        let d1 = this.Tempo - voice.HardCut;
         if (d1 < 0) d1 = 0;
-        if (!this.Voices[v].NoteCutOn) {
-          this.Voices[v].NoteCutOn = 1;
-          this.Voices[v].NoteCutWait = d1;
-          this.Voices[v].HardCutReleaseF = -(d1 - this.Tempo);
-        } else this.Voices[v].HardCut = 0;
+        if (!voice.NoteCutOn) {
+          voice.NoteCutOn = 1;
+          voice.NoteCutWait = d1;
+          voice.HardCutReleaseF = -(d1 - this.Tempo);
+        } else voice.HardCut = 0;
       }
     }
-    if (this.Voices[v].NoteCutOn) {
-      if (this.Voices[v].NoteCutWait <= 0) {
-        this.Voices[v].NoteCutOn = 0;
-        if (this.Voices[v].HardCutRelease) {
-          this.Voices[v].ADSR.rVolume =
-            -(this.Voices[v].ADSRVolume - (this.Voices[v].Instrument.Envelope.rVolume << 8)) /
-            this.Voices[v].HardCutReleaseF;
-          this.Voices[v].ADSR.rFrames = this.Voices[v].HardCutReleaseF;
-          this.Voices[v].ADSR.aFrames =
-            this.Voices[v].ADSR.dFrames =
-            this.Voices[v].ADSR.sFrames =
-              0;
-        } else this.Voices[v].NoteMaxVolume = 0;
-      } else this.Voices[v].NoteCutWait--;
+    if (voice.NoteCutOn) {
+      if (voice.NoteCutWait <= 0) {
+        voice.NoteCutOn = 0;
+        if (voice.HardCutRelease) {
+          voice.ADSR.rVolume =
+            -(voice.ADSRVolume - (voice.Instrument.Envelope.rVolume << 8)) / voice.HardCutReleaseF;
+          voice.ADSR.rFrames = voice.HardCutReleaseF;
+          voice.ADSR.aFrames = voice.ADSR.dFrames = voice.ADSR.sFrames = 0;
+        } else voice.NoteMaxVolume = 0;
+      } else voice.NoteCutWait--;
     }
     //adsrEnvelope
-    if (this.Voices[v].ADSR.aFrames) {
-      this.Voices[v].ADSRVolume += this.Voices[v].ADSR.aVolume; // Delta
-      if (--this.Voices[v].ADSR.aFrames <= 0)
-        this.Voices[v].ADSRVolume = this.Voices[v].Instrument.Envelope.aVolume << 8;
-    } else if (this.Voices[v].ADSR.dFrames) {
-      this.Voices[v].ADSRVolume += this.Voices[v].ADSR.dVolume; // Delta
-      if (--this.Voices[v].ADSR.dFrames <= 0)
-        this.Voices[v].ADSRVolume = this.Voices[v].Instrument.Envelope.dVolume << 8;
-    } else if (this.Voices[v].ADSR.sFrames) {
-      this.Voices[v].ADSR.sFrames--;
-    } else if (this.Voices[v].ADSR.rFrames) {
-      this.Voices[v].ADSRVolume += this.Voices[v].ADSR.rVolume; // Delta
-      if (--this.Voices[v].ADSR.rFrames <= 0)
-        this.Voices[v].ADSRVolume = this.Voices[v].Instrument.Envelope.rVolume << 8;
+    if (voice.ADSR.aFrames) {
+      voice.ADSRVolume += voice.ADSR.aVolume; // Delta
+      if (--voice.ADSR.aFrames <= 0) voice.ADSRVolume = voice.Instrument.Envelope.aVolume << 8;
+    } else if (voice.ADSR.dFrames) {
+      voice.ADSRVolume += voice.ADSR.dVolume; // Delta
+      if (--voice.ADSR.dFrames <= 0) voice.ADSRVolume = voice.Instrument.Envelope.dVolume << 8;
+    } else if (voice.ADSR.sFrames) {
+      voice.ADSR.sFrames--;
+    } else if (voice.ADSR.rFrames) {
+      voice.ADSRVolume += voice.ADSR.rVolume; // Delta
+      if (--voice.ADSR.rFrames <= 0) voice.ADSRVolume = voice.Instrument.Envelope.rVolume << 8;
     }
     //VolumeSlide
-    this.Voices[v].NoteMaxVolume =
-      this.Voices[v].NoteMaxVolume + this.Voices[v].VolumeSlideUp - this.Voices[v].VolumeSlideDown;
-    if (this.Voices[v].NoteMaxVolume < 0) this.Voices[v].NoteMaxVolume = 0;
-    if (this.Voices[v].NoteMaxVolume > 0x40) this.Voices[v].NoteMaxVolume = 0x40;
+    voice.NoteMaxVolume = voice.NoteMaxVolume + voice.VolumeSlideUp - voice.VolumeSlideDown;
+    if (voice.NoteMaxVolume < 0) voice.NoteMaxVolume = 0;
+    if (voice.NoteMaxVolume > 0x40) voice.NoteMaxVolume = 0x40;
     //Portamento
-    if (this.Voices[v].PeriodSlideOn) {
-      if (this.Voices[v].PeriodSlideWithLimit) {
-        let d0 = this.Voices[v].PeriodSlidePeriod - this.Voices[v].PeriodSlideLimit;
-        let d2 = this.Voices[v].PeriodSlideSpeed;
+    if (voice.PeriodSlideOn) {
+      if (voice.PeriodSlideWithLimit) {
+        let d0 = voice.PeriodSlidePeriod - voice.PeriodSlideLimit;
+        let d2 = voice.PeriodSlideSpeed;
         if (d0 > 0) d2 = -d2;
         if (d0) {
           const d3 = (d0 + d2) ^ d0;
-          if (d3 >= 0) d0 = this.Voices[v].PeriodSlidePeriod + d2;
-          else d0 = this.Voices[v].PeriodSlideLimit;
-          this.Voices[v].PeriodSlidePeriod = d0;
-          this.Voices[v].PlantPeriod = 1;
+          if (d3 >= 0) d0 = voice.PeriodSlidePeriod + d2;
+          else d0 = voice.PeriodSlideLimit;
+          voice.PeriodSlidePeriod = d0;
+          voice.PlantPeriod = 1;
         }
       } else {
-        this.Voices[v].PeriodSlidePeriod += this.Voices[v].PeriodSlideSpeed;
-        this.Voices[v].PlantPeriod = 1;
+        voice.PeriodSlidePeriod += voice.PeriodSlideSpeed;
+        voice.PlantPeriod = 1;
       }
     }
     //Vibrato
-    if (this.Voices[v].VibratoDepth) {
-      if (this.Voices[v].VibratoDelay <= 0) {
-        this.Voices[v].VibratoPeriod =
-          (this.VibratoTable[this.Voices[v].VibratoCurrent] * this.Voices[v].VibratoDepth) >> 7;
-        this.Voices[v].PlantPeriod = 1;
-        this.Voices[v].VibratoCurrent =
-          (this.Voices[v].VibratoCurrent + this.Voices[v].VibratoSpeed) & 0x3f;
-      } else this.Voices[v].VibratoDelay--;
+    if (voice.VibratoDepth) {
+      if (voice.VibratoDelay <= 0) {
+        voice.VibratoPeriod = (this.VibratoTable[voice.VibratoCurrent] * voice.VibratoDepth) >> 7;
+        voice.PlantPeriod = 1;
+        voice.VibratoCurrent = (voice.VibratoCurrent + voice.VibratoSpeed) & 0x3f;
+      } else voice.VibratoDelay--;
     }
     //PList
-    if (
-      this.Voices[v].Instrument &&
-      this.Voices[v].PerfCurrent < this.Voices[v].Instrument.PList.Length
-    ) {
-      if (--this.Voices[v].PerfWait <= 0) {
-        const Cur = this.Voices[v].PerfCurrent++;
-        this.Voices[v].PerfWait = this.Voices[v].PerfSpeed;
-        if (this.Voices[v].PerfList.Entries[Cur].Waveform) {
-          this.Voices[v].Waveform = this.Voices[v].PerfList.Entries[Cur].Waveform - 1;
-          this.Voices[v].NewWaveform = 1;
-          this.Voices[v].PeriodPerfSlideSpeed = this.Voices[v].PeriodPerfSlidePeriod = 0;
+    if (voice.Instrument && voice.PerfCurrent < voice.Instrument.PList.Length) {
+      if (--voice.PerfWait <= 0) {
+        const Cur = voice.PerfCurrent++;
+        voice.PerfWait = voice.PerfSpeed;
+        if (voice.PerfList.Entries[Cur].Waveform) {
+          voice.Waveform = voice.PerfList.Entries[Cur].Waveform - 1;
+          voice.NewWaveform = 1;
+          voice.PeriodPerfSlideSpeed = voice.PeriodPerfSlidePeriod = 0;
         }
         //Holdwave
-        this.Voices[v].PeriodPerfSlideOn = 0;
+        voice.PeriodPerfSlideOn = 0;
         for (let i = 0; i < 2; i++)
           this.PListCommandParse(
-            v,
-            this.Voices[v].PerfList.Entries[Cur].FX[i],
-            this.Voices[v].PerfList.Entries[Cur].FXParam[i],
+            voice,
+            voice.PerfList.Entries[Cur].FX[i],
+            voice.PerfList.Entries[Cur].FXParam[i],
           );
         //GetNote
-        if (this.Voices[v].PerfList.Entries[Cur].Note) {
-          this.Voices[v].InstrPeriod = this.Voices[v].PerfList.Entries[Cur].Note;
-          this.Voices[v].PlantPeriod = 1;
-          this.Voices[v].FixedNote = this.Voices[v].PerfList.Entries[Cur].Fixed;
+        if (voice.PerfList.Entries[Cur].Note) {
+          voice.InstrPeriod = voice.PerfList.Entries[Cur].Note;
+          voice.PlantPeriod = 1;
+          voice.FixedNote = voice.PerfList.Entries[Cur].Fixed;
         }
       }
     } else {
-      if (this.Voices[v].PerfWait) this.Voices[v].PerfWait--;
-      else this.Voices[v].PeriodPerfSlideSpeed = 0;
+      if (voice.PerfWait) voice.PerfWait--;
+      else voice.PeriodPerfSlideSpeed = 0;
     }
     //PerfPortamento
-    if (this.Voices[v].PeriodPerfSlideOn) {
-      this.Voices[v].PeriodPerfSlidePeriod -= this.Voices[v].PeriodPerfSlideSpeed;
-      if (this.Voices[v].PeriodPerfSlidePeriod) this.Voices[v].PlantPeriod = 1;
+    if (voice.PeriodPerfSlideOn) {
+      voice.PeriodPerfSlidePeriod -= voice.PeriodPerfSlideSpeed;
+      if (voice.PeriodPerfSlidePeriod) voice.PlantPeriod = 1;
     }
-    if (this.Voices[v].Waveform === 3 - 1 && this.Voices[v].SquareOn) {
-      if (--this.Voices[v].SquareWait <= 0) {
-        const d1 = this.Voices[v].SquareLowerLimit;
-        const d2 = this.Voices[v].SquareUpperLimit;
-        let d3 = this.Voices[v].SquarePos;
-        if (this.Voices[v].SquareInit) {
-          this.Voices[v].SquareInit = 0;
+    if (voice.Waveform === 3 - 1 && voice.SquareOn) {
+      if (--voice.SquareWait <= 0) {
+        const d1 = voice.SquareLowerLimit;
+        const d2 = voice.SquareUpperLimit;
+        let d3 = voice.SquarePos;
+        if (voice.SquareInit) {
+          voice.SquareInit = 0;
           if (d3 <= d1) {
-            this.Voices[v].SquareSlidingIn = 1;
-            this.Voices[v].SquareSign = 1;
+            voice.SquareSlidingIn = 1;
+            voice.SquareSign = 1;
           } else if (d3 >= d2) {
-            this.Voices[v].SquareSlidingIn = 1;
-            this.Voices[v].SquareSign = -1;
+            voice.SquareSlidingIn = 1;
+            voice.SquareSign = -1;
           }
         }
         //NoSquareInit
         if (d1 === d3 || d2 === d3) {
-          if (this.Voices[v].SquareSlidingIn) {
-            this.Voices[v].SquareSlidingIn = 0;
+          if (voice.SquareSlidingIn) {
+            voice.SquareSlidingIn = 0;
           } else {
-            this.Voices[v].SquareSign = -this.Voices[v].SquareSign;
+            voice.SquareSign = -voice.SquareSign;
           }
         }
-        d3 += this.Voices[v].SquareSign;
-        this.Voices[v].SquarePos = d3;
-        this.Voices[v].PlantSquare = 1;
-        this.Voices[v].SquareWait = this.Voices[v].Instrument.SquareSpeed;
+        d3 += voice.SquareSign;
+        voice.SquarePos = d3;
+        voice.PlantSquare = 1;
+        voice.SquareWait = voice.Instrument.SquareSpeed;
       }
     }
-    if (this.Voices[v].FilterOn && --this.Voices[v].FilterWait <= 0) {
-      const d1 = this.Voices[v].FilterLowerLimit;
-      const d2 = this.Voices[v].FilterUpperLimit;
-      let d3 = this.Voices[v].FilterPos;
-      if (this.Voices[v].FilterInit) {
-        this.Voices[v].FilterInit = 0;
+    if (voice.FilterOn && --voice.FilterWait <= 0) {
+      const d1 = voice.FilterLowerLimit;
+      const d2 = voice.FilterUpperLimit;
+      let d3 = voice.FilterPos;
+      if (voice.FilterInit) {
+        voice.FilterInit = 0;
         if (d3 <= d1) {
-          this.Voices[v].FilterSlidingIn = 1;
-          this.Voices[v].FilterSign = 1;
+          voice.FilterSlidingIn = 1;
+          voice.FilterSign = 1;
         } else if (d3 >= d2) {
-          this.Voices[v].FilterSlidingIn = 1;
-          this.Voices[v].FilterSign = -1;
+          voice.FilterSlidingIn = 1;
+          voice.FilterSign = -1;
         }
       }
       //NoFilterInit
-      const FMax = this.Voices[v].FilterSpeed < 3 ? 5 - this.Voices[v].FilterSpeed : 1;
+      const FMax = voice.FilterSpeed < 3 ? 5 - voice.FilterSpeed : 1;
       for (let i = 0; i < FMax; i++) {
         if (d1 === d3 || d2 === d3) {
-          if (this.Voices[v].FilterSlidingIn) {
-            this.Voices[v].FilterSlidingIn = 0;
+          if (voice.FilterSlidingIn) {
+            voice.FilterSlidingIn = 0;
           } else {
-            this.Voices[v].FilterSign = -this.Voices[v].FilterSign;
+            voice.FilterSign = -voice.FilterSign;
           }
         }
-        d3 += this.Voices[v].FilterSign;
+        d3 += voice.FilterSign;
       }
-      this.Voices[v].FilterPos = d3;
-      this.Voices[v].NewWaveform = 1;
-      this.Voices[v].FilterWait = this.Voices[v].FilterSpeed - 3;
-      if (this.Voices[v].FilterWait < 1) this.Voices[v].FilterWait = 1;
+      voice.FilterPos = d3;
+      voice.NewWaveform = 1;
+      voice.FilterWait = voice.FilterSpeed - 3;
+      if (voice.FilterWait < 1) voice.FilterWait = 1;
     }
-    if (this.Voices[v].Waveform === SQUARE || this.Voices[v].PlantSquare) {
+    if (voice.Waveform === Waveform.SQUARE || voice.PlantSquare) {
       //CalcSquare
-      const SquarePtr = this.Waves[toSixtyTwo(this.Voices[v].FilterPos - 1)][SQUARE];
+      const SquarePtr = this.Waves[toSixtyTwo(voice.FilterPos - 1)][Waveform.SQUARE];
       let SquareOfs = 0;
-      let X = this.Voices[v].SquarePos << (5 - this.Voices[v].WaveLength);
+      let X = voice.SquarePos << (5 - voice.WaveLength);
       if (X > 0x20) {
         X = 0x40 - X;
-        this.Voices[v].SquareReverse = 1;
+        voice.SquareReverse = 1;
       }
       //OkDownSquare
       if (X--) SquareOfs = X * 0x80; // <- WTF!?
-      const Delta = 32 >> this.Voices[v].WaveLength;
-      const AudioLen = (1 << this.Voices[v].WaveLength) * 4;
-      this.Voices[v].AudioSource = Array.from({ length: AudioLen });
+      const Delta = 32 >> voice.WaveLength;
+      const AudioLen = (1 << voice.WaveLength) * 4;
+      voice.AudioSource = Array.from({ length: AudioLen });
       for (let i = 0; i < AudioLen; i++) {
-        this.Voices[v].AudioSource[i] = SquarePtr[SquareOfs];
+        voice.AudioSource[i] = SquarePtr[SquareOfs];
         SquareOfs += Delta;
       }
-      this.Voices[v].NewWaveform = 1;
-      this.Voices[v].Waveform = SQUARE;
-      this.Voices[v].PlantSquare = 0;
+      voice.NewWaveform = 1;
+      voice.Waveform = Waveform.SQUARE;
+      voice.PlantSquare = 0;
     }
-    if (this.Voices[v].Waveform === WNOISE)
+    if (voice.Waveform === Waveform.WNOISE)
       // white noise
-      this.Voices[v].NewWaveform = 1;
+      voice.NewWaveform = 1;
 
-    if (this.Voices[v].NewWaveform) {
-      if (this.Voices[v].Waveform !== SQUARE) {
+    if (voice.NewWaveform) {
+      if (voice.Waveform !== Waveform.SQUARE) {
         // don't process square
-        const FilterSet = toSixtyTwo(this.Voices[v].FilterPos - 1);
+        const FilterSet = toSixtyTwo(voice.FilterPos - 1);
 
-        if (this.Voices[v].Waveform === WNOISE) {
+        if (voice.Waveform === Waveform.WNOISE) {
           // white noise
           const WNStart = this.WNRandom & (2 * 0x280 - 1) & ~1;
-          this.Voices[v].AudioSource = this.Waves[FilterSet][this.Voices[v].Waveform].slice(
-            WNStart,
-            WNStart + 0x280,
-          );
+          voice.AudioSource = this.Waves[FilterSet][voice.Waveform].slice(WNStart, WNStart + 0x280);
           //AddRandomMoving
           //GoOnRandom
           this.WNRandom += 2239384;
           this.WNRandom = ((((this.WNRandom >> 8) | (this.WNRandom << 24)) + 782323) ^ 75) - 6735;
         } else {
           // triangle / sawtooth
-          this.Voices[v].AudioSource =
-            this.Waves[FilterSet][this.Voices[v].Waveform][this.Voices[v].WaveLength];
+          voice.AudioSource = this.Waves[FilterSet][voice.Waveform][voice.WaveLength];
         }
       }
     }
     //StillHoldWaveform
     //AudioInitPeriod
-    this.Voices[v].AudioPeriod = this.Voices[v].InstrPeriod;
-    if (!this.Voices[v].FixedNote)
-      this.Voices[v].AudioPeriod += this.Voices[v].Transpose + this.Voices[v].TrackPeriod - 1;
-    if (this.Voices[v].AudioPeriod > 5 * 12) this.Voices[v].AudioPeriod = 5 * 12;
-    if (this.Voices[v].AudioPeriod < 0) this.Voices[v].AudioPeriod = 0;
-    this.Voices[v].AudioPeriod = this.PeriodTable[this.Voices[v].AudioPeriod];
-    if (!this.Voices[v].FixedNote) this.Voices[v].AudioPeriod += this.Voices[v].PeriodSlidePeriod;
-    this.Voices[v].AudioPeriod +=
-      this.Voices[v].PeriodPerfSlidePeriod + this.Voices[v].VibratoPeriod;
-    if (this.Voices[v].AudioPeriod > 0x0d60) this.Voices[v].AudioPeriod = 0x0d60;
-    if (this.Voices[v].AudioPeriod < 0x0071) this.Voices[v].AudioPeriod = 0x0071;
+    voice.AudioPeriod = voice.InstrPeriod;
+    if (!voice.FixedNote) voice.AudioPeriod += voice.Transpose + voice.TrackPeriod - 1;
+    if (voice.AudioPeriod > 5 * 12) voice.AudioPeriod = 5 * 12;
+    if (voice.AudioPeriod < 0) voice.AudioPeriod = 0;
+    voice.AudioPeriod = this.PeriodTable[voice.AudioPeriod];
+    if (!voice.FixedNote) voice.AudioPeriod += voice.PeriodSlidePeriod;
+    voice.AudioPeriod += voice.PeriodPerfSlidePeriod + voice.VibratoPeriod;
+    if (voice.AudioPeriod > 0x0d60) voice.AudioPeriod = 0x0d60;
+    if (voice.AudioPeriod < 0x0071) voice.AudioPeriod = 0x0071;
     //AudioInitVolume
-    this.Voices[v].AudioVolume =
-      ((((((((this.Voices[v].ADSRVolume >> 8) * this.Voices[v].NoteMaxVolume) >> 6) *
-        this.Voices[v].PerfSubVolume) >>
-        6) *
-        this.Voices[v].TrackMasterVolume) >>
+    voice.AudioVolume =
+      ((((((((voice.ADSRVolume >> 8) * voice.NoteMaxVolume) >> 6) * voice.PerfSubVolume) >> 6) *
+        voice.TrackMasterVolume) >>
         6) *
         this.MainVolume) >>
       6;
   }
 
-  SetAudio(v: number) {
-    if (!this.Voices[v].TrackOn) {
-      this.Voices[v].VoiceVolume = 0;
+  SetAudio(voice: AHXVoice) {
+    if (!voice.TrackOn) {
+      voice.VoiceVolume = 0;
       return;
     }
 
-    this.Voices[v].VoiceVolume = this.Voices[v].AudioVolume;
-    if (this.Voices[v].PlantPeriod) {
-      this.Voices[v].PlantPeriod = 0;
-      this.Voices[v].VoicePeriod = this.Voices[v].AudioPeriod;
+    voice.VoiceVolume = voice.AudioVolume;
+    if (voice.PlantPeriod) {
+      voice.PlantPeriod = 0;
+      voice.VoicePeriod = voice.AudioPeriod;
     }
-    if (this.Voices[v].NewWaveform) {
-      if (this.Voices[v].Waveform === 4 - 1) {
+    if (voice.NewWaveform) {
+      if (voice.Waveform === 4 - 1) {
         // for white noise, copy whole 0x280 samples
-        this.Voices[v].VoiceBuffer = this.Voices[v].AudioSource;
+        voice.VoiceBuffer = voice.AudioSource;
       } else {
-        const WaveLoops = (1 << (5 - this.Voices[v].WaveLength)) * 5;
-        const LoopLen = 4 * (1 << this.Voices[v].WaveLength);
-        if (!this.Voices[v].AudioSource.length) {
+        const WaveLoops = (1 << (5 - voice.WaveLength)) * 5;
+        const LoopLen = 4 * (1 << voice.WaveLength);
+        if (!voice.AudioSource.length) {
           // New or fill?
-          this.Voices[v].VoiceBuffer = Array.from({ length: WaveLoops * LoopLen });
+          voice.VoiceBuffer = Array.from({ length: WaveLoops * LoopLen });
         } else {
-          const Loop = this.Voices[v].AudioSource.slice(0, LoopLen);
-          this.Voices[v].VoiceBuffer = Array.from<number[]>({ length: WaveLoops })
-            .fill(Loop)
-            .flat();
+          const Loop = voice.AudioSource.slice(0, LoopLen);
+          voice.VoiceBuffer = Array.from<number[]>({ length: WaveLoops }).fill(Loop).flat();
         }
       }
-      //this.Voices[v].VoiceBuffer[0x280] = this.Voices[v].VoiceBuffer[0];
+      //voice.VoiceBuffer[0x280] = voice.VoiceBuffer[0];
     }
   }
 
-  PListCommandParse(v: number, FX: number, FXParam: number) {
+  PListCommandParse(voice: AHXVoice, FX: number, FXParam: number) {
     switch (FX) {
       case 0:
         if (this.Song.Revision > 0 && FXParam !== 0) {
-          if (this.Voices[v].IgnoreFilter) {
-            this.Voices[v].FilterPos = this.Voices[v].IgnoreFilter;
-            this.Voices[v].IgnoreFilter = 0;
-          } else this.Voices[v].FilterPos = FXParam;
-          this.Voices[v].NewWaveform = 1;
+          if (voice.IgnoreFilter) {
+            voice.FilterPos = voice.IgnoreFilter;
+            voice.IgnoreFilter = 0;
+          } else voice.FilterPos = FXParam;
+          voice.NewWaveform = 1;
         }
         break;
       case 1:
-        this.Voices[v].PeriodPerfSlideSpeed = FXParam;
-        this.Voices[v].PeriodPerfSlideOn = 1;
+        voice.PeriodPerfSlideSpeed = FXParam;
+        voice.PeriodPerfSlideOn = 1;
         break;
       case 2:
-        this.Voices[v].PeriodPerfSlideSpeed = -FXParam;
-        this.Voices[v].PeriodPerfSlideOn = 1;
+        voice.PeriodPerfSlideSpeed = -FXParam;
+        voice.PeriodPerfSlideOn = 1;
         break;
       case 3: // Init Square Modulation
-        if (!this.Voices[v].IgnoreSquare) {
-          this.Voices[v].SquarePos = FXParam >> (5 - this.Voices[v].WaveLength);
-        } else this.Voices[v].IgnoreSquare = 0;
+        if (!voice.IgnoreSquare) {
+          voice.SquarePos = FXParam >> (5 - voice.WaveLength);
+        } else voice.IgnoreSquare = 0;
         break;
       case 4: // Start/Stop Modulation
         if (this.Song.Revision === 0 || FXParam === 0) {
-          this.Voices[v].SquareInit = this.Voices[v].SquareOn ^= 1;
-          this.Voices[v].SquareSign = 1;
+          voice.SquareInit = voice.SquareOn ^= 1;
+          voice.SquareSign = 1;
         } else {
           if (FXParam & 0x0f) {
-            this.Voices[v].SquareInit = this.Voices[v].SquareOn ^= 1;
-            this.Voices[v].SquareSign = 1;
-            if ((FXParam & 0x0f) === 0x0f) this.Voices[v].SquareSign = -1;
+            voice.SquareInit = voice.SquareOn ^= 1;
+            voice.SquareSign = 1;
+            if ((FXParam & 0x0f) === 0x0f) voice.SquareSign = -1;
           }
           if (FXParam & 0xf0) {
-            this.Voices[v].FilterInit = this.Voices[v].FilterOn ^= 1;
-            this.Voices[v].FilterSign = 1;
-            if ((FXParam & 0xf0) === 0xf0) this.Voices[v].FilterSign = -1;
+            voice.FilterInit = voice.FilterOn ^= 1;
+            voice.FilterSign = 1;
+            if ((FXParam & 0xf0) === 0xf0) voice.FilterSign = -1;
           }
         }
         break;
       case 5: // Jump to Step [xx]
-        this.Voices[v].PerfCurrent = FXParam;
+        voice.PerfCurrent = FXParam;
         break;
       case 6: // Set Volume
         if (FXParam > 0x40) {
           if ((FXParam -= 0x50) >= 0) {
-            if (FXParam <= 0x40) this.Voices[v].PerfSubVolume = FXParam;
+            if (FXParam <= 0x40) voice.PerfSubVolume = FXParam;
             else if ((FXParam -= 0xa0 - 0x50) >= 0)
-              if (FXParam <= 0x40) this.Voices[v].TrackMasterVolume = FXParam;
+              if (FXParam <= 0x40) voice.TrackMasterVolume = FXParam;
           }
-        } else this.Voices[v].NoteMaxVolume = FXParam;
+        } else voice.NoteMaxVolume = FXParam;
         break;
       case 7: // set speed
-        this.Voices[v].PerfSpeed = this.Voices[v].PerfWait = FXParam;
+        voice.PerfSpeed = voice.PerfWait = FXParam;
         break;
     }
   }
@@ -1345,15 +1320,15 @@ export class AHXOutput {
       if (this.Player.Voices[v].VoiceVolume === 0) continue;
       const freq = 3579545.25 / this.Player.Voices[v].VoicePeriod; // #define Period2Freq(period) (3579545.25f / (period))
       const delta = Math.floor((freq * (1 << 16)) / this.Frequency);
-      let samples_to_mix = NrSamples;
+      let samplesToMix = NrSamples;
       let mixpos = 0;
-      while (samples_to_mix) {
+      while (samplesToMix) {
         if (this.pos[v] >= 0x280 << 16) this.pos[v] -= 0x280 << 16;
         const thiscount = Math.min(
-          samples_to_mix,
+          samplesToMix,
           Math.floor(((0x280 << 16) - this.pos[v] - 1) / delta) + 1,
         );
-        samples_to_mix -= thiscount;
+        samplesToMix -= thiscount;
         for (let i = 0; i < thiscount; i++) {
           this.MixingBuffer[mb + mixpos++] +=
             (this.Player.Voices[v].VoiceBuffer[this.pos[v] >> 16] *
