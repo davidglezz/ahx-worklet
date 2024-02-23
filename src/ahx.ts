@@ -1313,9 +1313,11 @@ export class AHXOutput {
   }
 
   MixChunk(NrSamples: number, mb: number) {
+    const period2Freq = 3579545.25;
     for (let v = 0; v < 4; v++) {
-      if (this.Player.Voices[v].VoiceVolume === 0) continue;
-      const freq = 3579545.25 / this.Player.Voices[v].VoicePeriod; // #define Period2Freq(period) (3579545.25f / (period))
+      const { VoiceBuffer, VoiceVolume, VoicePeriod } = this.Player.Voices[v];
+      if (VoiceVolume === 0) continue;
+      const freq = period2Freq / VoicePeriod;
       const delta = Math.floor((freq * (1 << 16)) / this.Frequency);
       let samplesToMix = NrSamples;
       let mixpos = 0;
@@ -1327,10 +1329,7 @@ export class AHXOutput {
         );
         samplesToMix -= thiscount;
         for (let i = 0; i < thiscount; i++) {
-          this.MixingBuffer[mb + mixpos++] +=
-            (this.Player.Voices[v].VoiceBuffer[this.pos[v] >> 16] *
-              this.Player.Voices[v].VoiceVolume) >>
-            6;
+          this.MixingBuffer[mb + mixpos++] += (VoiceBuffer[this.pos[v] >> 16] * VoiceVolume) >> 6;
           this.pos[v] += delta;
         }
       }
