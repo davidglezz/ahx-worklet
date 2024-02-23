@@ -1051,25 +1051,22 @@ export class AHXPlayer {
     if (voice.Instrument && voice.PerfCurrent < voice.Instrument.PList.Length) {
       if (--voice.PerfWait <= 0) {
         const Cur = voice.PerfCurrent++;
+        const { FX, FXParam, Fixed, Note, Waveform } = voice.PerfList.Entries[Cur];
         voice.PerfWait = voice.PerfSpeed;
-        if (voice.PerfList.Entries[Cur].Waveform) {
-          voice.Waveform = voice.PerfList.Entries[Cur].Waveform;
+        if (Waveform) {
+          voice.Waveform = Waveform;
           voice.NewWaveform = true;
           voice.PeriodPerfSlideSpeed = voice.PeriodPerfSlidePeriod = 0;
         }
         //Holdwave
         voice.PeriodPerfSlideOn = 0;
-        for (let i = 0; i < 2; i++)
-          this.PListCommandParse(
-            voice,
-            voice.PerfList.Entries[Cur].FX[i],
-            voice.PerfList.Entries[Cur].FXParam[i],
-          );
+        this.PListCommandParse(voice, FX[0], FXParam[0]);
+        this.PListCommandParse(voice, FX[1], FXParam[1]);
         //GetNote
-        if (voice.PerfList.Entries[Cur].Note) {
-          voice.InstrPeriod = voice.PerfList.Entries[Cur].Note;
+        if (Note) {
+          voice.InstrPeriod = Note;
           voice.PlantPeriod = 1;
-          voice.FixedNote = voice.PerfList.Entries[Cur].Fixed;
+          voice.FixedNote = Fixed;
         }
       }
     } else {
