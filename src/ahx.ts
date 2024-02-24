@@ -591,66 +591,45 @@ function Filter(input: number[], fre: number): [low: number[], high: number[]] {
 function GenerateFilterWaveforms(filterSets: AHXWaves) {
   const src = filterSets[31];
   let freq = 8;
-  let temp = 0;
-  while (temp < 31) {
-    let dstLowSquares: number[] = [];
-    let dstHighSquares: number[] = [];
+  for (let set = 0; set < 31; set++) {
     const fre = (freq * 1.25) / 100.0;
-    // squares alle einzeln filtern
+    // Filter all squares individually
+    const dstLowSquares = Array.from<number[]>({ length: 0x20 });
+    const dstHighSquares = Array.from<number[]>({ length: 0x20 });
     for (let i = 0; i < 0x20; i++) {
       const square = src[Waveform.SQUARE].slice(i * 0x80, (i + 1) * 0x80);
-      const [dstLowSquare, dstHighSquare] = Filter(square, fre);
-      dstLowSquares = dstLowSquares.concat(dstLowSquare);
-      dstHighSquares = dstHighSquares.concat(dstHighSquare);
+      [dstLowSquares[i], dstHighSquares[i]] = Filter(square, fre);
     }
 
-    const [lowTriangle04, highTriangle04] = Filter(src[Waveform.TRIANGLE][0], fre);
-    const [lowTriangle08, highTriangle08] = Filter(src[Waveform.TRIANGLE][1], fre);
-    const [lowTriangle10, highTriangle10] = Filter(src[Waveform.TRIANGLE][2], fre);
-    const [lowTriangle20, highTriangle20] = Filter(src[Waveform.TRIANGLE][3], fre);
-    const [lowTriangle40, highTriangle40] = Filter(src[Waveform.TRIANGLE][4], fre);
-    const [lowTriangle80, highTriangle80] = Filter(src[Waveform.TRIANGLE][5], fre);
-    const [lowSawtooth04, highSawtooth04] = Filter(src[Waveform.SAWTOOTH][0], fre);
-    const [lowSawtooth08, highSawtooth08] = Filter(src[Waveform.SAWTOOTH][1], fre);
-    const [lowSawtooth10, highSawtooth10] = Filter(src[Waveform.SAWTOOTH][2], fre);
-    const [lowSawtooth20, highSawtooth20] = Filter(src[Waveform.SAWTOOTH][3], fre);
-    const [lowSawtooth40, highSawtooth40] = Filter(src[Waveform.SAWTOOTH][4], fre);
-    const [lowSawtooth80, highSawtooth80] = Filter(src[Waveform.SAWTOOTH][5], fre);
+    const [lowTri04, highTri04] = Filter(src[Waveform.TRIANGLE][0], fre);
+    const [lowTri08, highTri08] = Filter(src[Waveform.TRIANGLE][1], fre);
+    const [lowTri10, highTri10] = Filter(src[Waveform.TRIANGLE][2], fre);
+    const [lowTri20, highTri20] = Filter(src[Waveform.TRIANGLE][3], fre);
+    const [lowTri40, highTri40] = Filter(src[Waveform.TRIANGLE][4], fre);
+    const [lowTri80, highTri80] = Filter(src[Waveform.TRIANGLE][5], fre);
+    const [lowSaw04, highSaw04] = Filter(src[Waveform.SAWTOOTH][0], fre);
+    const [lowSaw08, highSaw08] = Filter(src[Waveform.SAWTOOTH][1], fre);
+    const [lowSaw10, highSaw10] = Filter(src[Waveform.SAWTOOTH][2], fre);
+    const [lowSaw20, highSaw20] = Filter(src[Waveform.SAWTOOTH][3], fre);
+    const [lowSaw40, highSaw40] = Filter(src[Waveform.SAWTOOTH][4], fre);
+    const [lowSaw80, highSaw80] = Filter(src[Waveform.SAWTOOTH][5], fre);
     const [lowWhiteNoiseBig, highWhiteNoiseBig] = Filter(src[Waveform.WNOISE], fre);
 
-    const dstLow: AHXWaves[number] = [
+    filterSets[set] = [
       undefined,
-      [lowTriangle04, lowTriangle08, lowTriangle10, lowTriangle20, lowTriangle40, lowTriangle80],
-      [lowSawtooth04, lowSawtooth08, lowSawtooth10, lowSawtooth20, lowSawtooth40, lowSawtooth80],
-      dstLowSquares,
+      [lowTri04, lowTri08, lowTri10, lowTri20, lowTri40, lowTri80],
+      [lowSaw04, lowSaw08, lowSaw10, lowSaw20, lowSaw40, lowSaw80],
+      dstLowSquares.flat(),
       lowWhiteNoiseBig,
     ];
-    const dstHigh: AHXWaves[number] = [
+    filterSets[set + 32] = [
       undefined,
-      [
-        highTriangle04,
-        highTriangle08,
-        highTriangle10,
-        highTriangle20,
-        highTriangle40,
-        highTriangle80,
-      ],
-      [
-        highSawtooth04,
-        highSawtooth08,
-        highSawtooth10,
-        highSawtooth20,
-        highSawtooth40,
-        highSawtooth80,
-      ],
-      dstHighSquares,
+      [highTri04, highTri08, highTri10, highTri20, highTri40, highTri80],
+      [highSaw04, highSaw08, highSaw10, highSaw20, highSaw40, highSaw80],
+      dstHighSquares.flat(),
       highWhiteNoiseBig,
     ];
 
-    filterSets[temp] = dstLow;
-    filterSets[temp + 32] = dstHigh;
-
-    temp++;
     freq += 3;
   }
 }
