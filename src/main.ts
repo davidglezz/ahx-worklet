@@ -3,14 +3,12 @@ import { AHXNode } from './ahx-node.ts';
 import AHXProcessor from './ahx-worklet.ts?url';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <h1>AHX worklet</h1>
-    <div class="card">
-      <button id="play" type="button">Play</button>
-    </div>
-    <div class="card">
-      <ul id="songlist"></ul>
-    </div>
+  <h1>AHX worklet</h1>
+  <div class="card">
+    <button id="play" type="button">Play</button>
+  </div>
+  <div class="list">
+    <dl id="songlist"></dl>
   </div>
 `;
 
@@ -51,20 +49,28 @@ async function play(songName: string) {
 async function loadSongList() {
   const response = await fetch('songlist.txt');
   const data = await response.text();
-  return data.split('\n');
+  return data.split('\n').filter(Boolean);
 }
 
 async function displaySongList() {
-  const list = document.querySelector<HTMLUListElement>('#songlist')!;
+  const list = document.querySelector<HTMLDListElement>('#songlist')!;
   const songs = await loadSongList();
+  let currentAuthor = '';
   songs.forEach(song => {
-    const li = document.createElement('li');
+    const dd = document.createElement('dd');
     const a = document.createElement('a');
     a.dataset.song = song;
-    a.textContent = song;
+    const [author, title] = song.split('/');
+    if (author !== currentAuthor) {
+      const dt = document.createElement('dt');
+      dt.textContent = author;
+      list.appendChild(dt);
+      currentAuthor = author;
+    }
+    a.textContent = title;
     a.href = `#${encodeURIComponent(song)}`;
-    li.appendChild(a);
-    list.appendChild(li);
+    dd.appendChild(a);
+    list.appendChild(dd);
   });
 }
 
