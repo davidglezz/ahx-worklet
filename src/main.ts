@@ -6,16 +6,33 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <h1>AHX worklet</h1>
   <div class="card">
     <button id="play" type="button">Play</button>
+    <input id="volume" type="range" min="0.0" max="1.0" step="0.01" value="1.0"/>
   </div>
   <div class="list">
     <dl id="songlist"></dl>
   </div>
 `;
 
-let node: AHXNode;
+let ahxNode: AHXNode;
+let gainNode: GainNode;
+const context = await start();
 
-document.querySelector<HTMLButtonElement>('#play')!.onclick = () => play(location.hash.slice(1));
-window.addEventListener('hashchange', () => node && play(location.hash.slice(1)));
+document.querySelector<HTMLButtonElement>('#play')!.onclick = async (event: Event) => {
+  if (context.state === 'suspended') {
+    play(location.hash.slice(1));
+    await context.resume();
+    (event.target as HTMLButtonElement).textContent = 'Stop';
+  } else {
+    context.suspend();
+    (event.target as HTMLButtonElement).textContent = 'Play';
+  }
+};
+
+document.getElementById('volume')?.addEventListener('input', event => {
+  gainNode.gain.value = Number((event.target as HTMLInputElement).value);
+});
+
+window.addEventListener('hashchange', () => play(location.hash.slice(1)));
 
 async function loadBinary(url: string) {
   const response = await fetch(url);
@@ -25,25 +42,25 @@ async function loadBinary(url: string) {
   return await response.arrayBuffer();
 }
 
-async function start(context: AudioContext) {
+async function start(context = new AudioContext()) {
+  context.onstatechange = () => console.log(`AudioContext: ${context.state}`); // eslint-disable-line no-console
+  console.log('Creating AudioContext...'); // eslint-disable-line no-console
   await context.audioWorklet.addModule(AHXProcessor);
-  const node = new AHXNode(context);
-  node.connect(context.destination);
-  node.port.onmessage = console.log; // eslint-disable-line no-console
-  context.resume();
-  return node;
+  gainNode = context.createGain();
+  gainNode.connect(context.destination);
+  ahxNode = new AHXNode(context);
+  ahxNode.connect(gainNode);
+  ahxNode.port.onmessage = console.log; // eslint-disable-line no-console
+  return context;
 }
 
 async function play(songName: string) {
-  if (!node) {
-    node = await start(new AudioContext());
-  }
   if (!songName) {
     return;
   }
   const url = `https://modland.com/pub/modules/AHX/${songName}.ahx`;
   const songData = await loadBinary(url);
-  await node.load(songData);
+  await ahxNode.load(songData);
 }
 
 async function loadSongList() {
