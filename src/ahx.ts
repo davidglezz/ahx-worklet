@@ -636,12 +636,10 @@ function GenerateFilterWaveforms(filterSets: AHXWaves) {
 
 export class AHXPlayer {
   StepWaitFrames = 0;
-  GetNewPosition = 0;
-  SongEndReached = 0;
-  TimingValue = 0;
-  PatternBreak = 0;
+  GetNewPosition = false;
+  SongEndReached = false;
+  PatternBreak = false;
   MainVolume = 0x40;
-  Playing = 0;
   Tempo = 0;
   PosNr = 0;
   PosJump = 0;
@@ -678,15 +676,13 @@ export class AHXPlayer {
     else this.PosNr = this.Song.Subsongs[Nr - 1];
 
     this.PosJump = 0;
-    this.PatternBreak = 0;
-    //this.MainVolume = 0x40;
-    this.Playing = 1;
+    this.PatternBreak = false;
     this.NoteNr = this.PosJumpNote = 0;
     this.Tempo = 6;
     this.StepWaitFrames = 0;
-    this.GetNewPosition = 1;
-    this.SongEndReached = 0;
-    this.TimingValue = this.PlayingTime = 0;
+    this.GetNewPosition = true;
+    this.SongEndReached = false;
+    this.PlayingTime = 0;
     this.Voices = [new AHXVoice(0), new AHXVoice(1), new AHXVoice(2), new AHXVoice(3)];
   }
 
@@ -708,7 +704,7 @@ export class AHXPlayer {
           voice.NextTrack = this.Song.Positions[NextPos].Track[voice.number];
           voice.NextTranspose = this.Song.Positions[NextPos].Transpose[voice.number];
         });
-        this.GetNewPosition = 0;
+        this.GetNewPosition = false;
       }
       this.Voices.forEach(voice => this.ProcessStep(voice));
       this.StepWaitFrames = this.Tempo;
@@ -722,20 +718,20 @@ export class AHXPlayer {
         if (this.NoteNr >= this.Song.TrackLength) {
           this.PosJump = this.PosNr + 1;
           this.PosJumpNote = 0;
-          this.PatternBreak = 1;
+          this.PatternBreak = true;
         }
       }
       if (this.PatternBreak) {
-        this.PatternBreak = 0;
+        this.PatternBreak = false;
         this.NoteNr = this.PosJumpNote;
         this.PosJumpNote = 0;
         this.PosNr = this.PosJump;
         this.PosJump = 0;
         if (this.PosNr >= this.Song.PositionNr) {
-          this.SongEndReached = 1;
+          this.SongEndReached = true;
           this.PosNr = this.Song.Restart;
         }
-        this.GetNewPosition = 1;
+        this.GetNewPosition = true;
       }
     }
     //RemainPosition
@@ -753,7 +749,7 @@ export class AHXPlayer {
   SetPosition(n: number) {
     this.PosNr = clamp(n, 0, this.Song.PositionNr - 1);
     this.StepWaitFrames = 0;
-    this.GetNewPosition = 1;
+    this.GetNewPosition = true;
   }
 
   ProcessStep(voice: AHXVoice) {
@@ -772,13 +768,13 @@ export class AHXPlayer {
         break;
       case 0xb: // Position Jump
         this.PosJump = this.PosJump * 100 + (FXParam & 0x0f) + (FXParam >> 4) * 10;
-        this.PatternBreak = 1;
+        this.PatternBreak = true;
         break;
       case 0xd: // Patternbreak
         this.PosJump = this.PosNr + 1;
         this.PosJumpNote = (FXParam & 0x0f) + (FXParam >> 4) * 10;
         if (this.PosJumpNote > this.Song.TrackLength) this.PosJumpNote = 0;
-        this.PatternBreak = 1;
+        this.PatternBreak = true;
         break;
       case 0xe: // Enhanced commands
         switch (FXParam >> 4) {
