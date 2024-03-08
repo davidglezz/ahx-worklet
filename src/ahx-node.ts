@@ -1,7 +1,7 @@
-import type { EventType, LoadEvent, PositionEvent } from './types.ts';
+import type { LoadEvent, MessageToNode, PositionEvent } from './types.ts';
 
 type EventListeners = {
-  [K in EventType['id']]?: (event: Extract<EventType, { id: K }>) => void;
+  [K in MessageToNode['id']]?: (event: Extract<MessageToNode, { id: K }>) => void;
 };
 
 export class AHXNode extends AudioWorkletNode {
@@ -13,7 +13,7 @@ export class AHXNode extends AudioWorkletNode {
       numberOfOutputs: 1,
     });
     this.eventListeners = eventListeners;
-    this.port.onmessage = ({ data }: MessageEvent<EventType>) =>
+    this.port.onmessage = ({ data }: MessageEvent<MessageToNode>) =>
       this.eventListeners[data.id]?.(data);
   }
 

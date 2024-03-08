@@ -731,7 +731,7 @@ export class AHXPlayer {
         this.PosJumpNote = 0;
         this.PosNr = this.PosJump;
         this.PosJump = 0;
-        if (this.PosNr === this.Song.PositionNr) {
+        if (this.PosNr >= this.Song.PositionNr) {
           this.SongEndReached = 1;
           this.PosNr = this.Song.Restart;
         }
@@ -743,15 +743,15 @@ export class AHXPlayer {
   }
 
   NextPosition() {
-    this.PosNr++;
-    if (this.PosNr === this.Song.PositionNr) this.PosNr = 0;
-    this.StepWaitFrames = 0;
-    this.GetNewPosition = 1;
+    this.SetPosition(this.PosNr + 1 === this.Song.PositionNr ? 0 : this.PosNr + 1);
   }
 
   PrevPosition() {
-    this.PosNr--;
-    if (this.PosNr < 0) this.PosNr = 0;
+    this.SetPosition(this.PosNr - 1);
+  }
+
+  SetPosition(n: number) {
+    this.PosNr = clamp(n, 0, this.Song.PositionNr - 1);
     this.StepWaitFrames = 0;
     this.GetNewPosition = 1;
   }

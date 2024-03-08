@@ -1,5 +1,5 @@
 import { AHXOutput, AHXSong } from './ahx.ts';
-import type { EventType, LoadEvent, PositionEvent } from './types.ts';
+import type { LoadEvent, MessageToWorklet, PositionEvent } from './types.ts';
 
 /// <reference types="@types/audioworklet" />
 
@@ -8,12 +8,11 @@ class AHXProcessor extends AudioWorkletProcessor implements AudioWorkletProcesso
 
   bufferFull = 0;
   bufferOffset = 0;
-
-  lastPossition = 0;
+  currentPosition = 0;
 
   constructor() {
     super();
-    this.port.onmessage = ({ data }: MessageEvent<EventType>) => this[data.id]?.(data);
+    this.port.onmessage = ({ data }: MessageEvent<MessageToWorklet>) => this[data.id]?.(data);
   }
 
   process(_input: never, outputs: Float32Array[][], _params: never): boolean {
@@ -40,17 +39,22 @@ class AHXProcessor extends AudioWorkletProcessor implements AudioWorkletProcesso
         this.bufferOffset = this.bufferFull = 0;
       }
     }
-    if (this.lastPossition !== this.Output.Player.PosNr) {
+    if (this.currentPosition !== this.Output.Player.PosNr) {
       const value = this.Output.Player.PosNr / this.Output.Player.Song.PositionNr;
       this.port.postMessage({ id: 'position', value });
-      this.lastPossition = this.Output.Player.PosNr;
+      this.currentPosition = this.Output.Player.PosNr;
     }
 
     return true;
   }
 
   position({ value }: PositionEvent) {
-    this.Output.Player.PosNr = Math.floor(value * this.Output.Player.Song.PositionNr);
+    this.currentPosition = Math.floor(value * this.Output.Player.Song.PositionNr);
+    this.Output.Player.SetPosition(this.currentPosition);
+    this.port.postMessage({
+      id: 'position',
+      value: this.Output.Player.PosNr / this.Output.Player.Song.PositionNr,
+    });
   }
 
   load({ songData }: LoadEvent) {
@@ -58,7 +62,7 @@ class AHXProcessor extends AudioWorkletProcessor implements AudioWorkletProcesso
     this.Output.Player.InitSong(song);
     this.Output.Player.InitSubsong(0);
     this.Output.Init(sampleRate, 16);
-    this.lastPossition = 0;
+    this.currentPosition = 0;
     this.port.postMessage({
       id: 'position',
       value: this.Output.Player.PosNr / this.Output.Player.Song.PositionNr,
