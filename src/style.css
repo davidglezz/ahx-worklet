@@ -1,4 +1,5 @@
 :root {
+  --primary: #646cff;
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -11,13 +12,16 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  accent-color: var(--primary);
 }
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: var(--primary);
   text-decoration: inherit;
 }
+
 a:hover {
   color: #535bf2;
 }
@@ -64,12 +68,12 @@ button {
   transition: border-color 0.25s;
 
   &:hover {
-    border-color: #646cff;
+    border-color: var(--primary);
   }
 
   &:focus,
   &:focus-visible {
-    outline: 4px auto #646cff;
+    outline: 4px auto var(--primary);
   }
 }
 
@@ -78,9 +82,11 @@ button {
     color: #213547;
     background-color: #ffffff;
   }
+
   a:hover {
     color: #747bff;
   }
+
   button {
     background-color: #f9f9f9;
   }
@@ -88,11 +94,13 @@ button {
 
 .list {
   overflow-y: auto;
+
   dl {
     list-style: none;
     padding: 0;
     margin: 0;
   }
+
   dt {
     position: sticky;
     top: 0;
@@ -103,8 +111,10 @@ button {
     background-color: #1a1a1a;
     box-shadow: 0 0 0 0.25rem #242424;
   }
+
   dd {
     margin: 0rem;
+
     a {
       border-radius: 0.5rem;
       border: 1px solid transparent;
@@ -115,12 +125,35 @@ button {
       color: inherit;
       text-decoration: none;
       transition: background-color 0.2s;
+
       &:hover {
         background-color: #1a1a1a;
       }
+
       &:active {
-        border-color: #646cff;
+        border-color: var(--primary);
       }
     }
+  }
+}
+
+.controls {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-icon {
+  aspect-ratio: 1;
+  padding: 0;
+  line-height: 1;
+  display: flex;
+  fill: currentColor;
+  color: rgba(255, 255, 255, 0.75);
+  padding: 1rem;
+  border-radius: 99rem;
+
+  svg {
+    width: 32px;
+    height: 32px;
   }
 }

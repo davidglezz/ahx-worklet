@@ -2,10 +2,15 @@ import './style.css';
 import { AHXNode } from './ahx-node.ts';
 import AHXProcessor from './ahx-worklet.ts?url';
 
+const icons = {
+  play: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>play</title><path d="M8,5.14V19.14L19,12.14L8,5.14Z" /></svg>`,
+  stop: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>stop</title><path d="M18,18H6V6H18V18Z" /></svg>`,
+};
+
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <h1>AHX worklet</h1>
-  <div class="card">
-    <button id="play" type="button">Play</button>
+  <div class="controls">
+    <button id="play" class="btn-icon" type="button">${icons.play}</button>
     <input id="volume" type="range" min="0.0" max="1.0" step="0.01" value="1.0"/>
   </div>
   <div class="list">
@@ -21,10 +26,10 @@ document.querySelector<HTMLButtonElement>('#play')!.onclick = async (event: Even
   if (context.state === 'suspended') {
     play(location.hash.slice(1));
     await context.resume();
-    (event.target as HTMLButtonElement).textContent = 'Stop';
+    (event.target as HTMLButtonElement).innerHTML = icons.stop;
   } else {
     context.suspend();
-    (event.target as HTMLButtonElement).textContent = 'Play';
+    (event.target as HTMLButtonElement).innerHTML = icons.play;
   }
 };
 
