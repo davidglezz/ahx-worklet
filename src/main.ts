@@ -11,6 +11,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <h1>AHX worklet</h1>
   <div class="controls">
     <button id="play" class="btn-icon" type="button">${icons.play}</button>
+    <input id="position" class="flex-fill" type="range" min="0.0" max="1.0" step="0.01" value="0"/>
     <input id="volume" type="range" min="0.0" max="1.0" step="0.01" value="1.0"/>
   </div>
   <div class="list">
@@ -18,23 +19,31 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   </div>
 `;
 
+const parts = {
+  play: document.querySelector<HTMLButtonElement>('#play')!,
+  position: document.querySelector<HTMLInputElement>('#position')!,
+  volume: document.querySelector<HTMLInputElement>('#volume')!,
+  songlist: document.querySelector<HTMLDivElement>('#songlist')!,
+};
+
 let ahxNode: AHXNode;
 let gainNode: GainNode;
 const context = await start();
 
-document.querySelector<HTMLButtonElement>('#play')!.onclick = async (event: Event) => {
+parts.play.onclick = async () => {
   if (context.state === 'suspended') {
     play(location.hash.slice(1));
-    await context.resume();
-    (event.target as HTMLButtonElement).innerHTML = icons.stop;
   } else {
-    context.suspend();
-    (event.target as HTMLButtonElement).innerHTML = icons.play;
+    await context.suspend();
   }
 };
 
-document.getElementById('volume')?.addEventListener('input', event => {
+parts.volume.addEventListener('input', event => {
   gainNode.gain.value = Number((event.target as HTMLInputElement).value);
+});
+
+parts.position.addEventListener('input', event => {
+  ahxNode.setPosition(Number((event.target as HTMLInputElement).value));
 });
 
 window.addEventListener('hashchange', () => play(location.hash.slice(1)));
@@ -48,14 +57,16 @@ async function loadBinary(url: string) {
 }
 
 async function start(context = new AudioContext()) {
-  context.onstatechange = () => console.log(`AudioContext: ${context.state}`); // eslint-disable-line no-console
-  console.log('Creating AudioContext...'); // eslint-disable-line no-console
+  context.onstatechange = () => {
+    parts.play.innerHTML = icons[context.state === 'running' ? 'stop' : 'play'];
+  };
   await context.audioWorklet.addModule(AHXProcessor);
   gainNode = context.createGain();
   gainNode.connect(context.destination);
-  ahxNode = new AHXNode(context);
+  ahxNode = new AHXNode(context, {
+    position: ({ value }: PositionEvent) => (parts.position.value = String(value)),
+  });
   ahxNode.connect(gainNode);
-  ahxNode.port.onmessage = console.log; // eslint-disable-line no-console
   return context;
 }
 
@@ -66,6 +77,9 @@ async function play(songName: string) {
   const url = `https://modland.com/pub/modules/AHX/${songName}.ahx`;
   const songData = await loadBinary(url);
   await ahxNode.load(songData);
+  if (context.state !== 'running') {
+    await context.resume();
+  }
 }
 
 async function loadSongList() {

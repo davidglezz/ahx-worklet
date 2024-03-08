@@ -44,6 +44,10 @@ h1 {
   text-align: center;
 }
 
+.flex-fill {
+  flex: 1;
+}
+
 #app {
   display: flex;
   align-content: stretch;
