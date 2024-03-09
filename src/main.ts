@@ -2,6 +2,7 @@ import './style.css';
 import { AHXNode } from './ahx-node.ts';
 import AHXProcessor from './ahx-worklet.ts?url';
 import type { PositionEvent } from './types.ts';
+import { visualize } from './utils.ts';
 
 const icons = {
   play: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>play</title><path d="M8,5.14V19.14L19,12.14L8,5.14Z" /></svg>`,
@@ -9,6 +10,7 @@ const icons = {
 };
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
+  <canvas id="visualizer" width="640" height="96"></canvas>
   <h1>AHX worklet</h1>
   <div class="controls">
     <button id="play" class="btn-icon" type="button">${icons.play}</button>
@@ -19,6 +21,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 `;
 
 const parts = {
+  visualizer: document.querySelector<HTMLCanvasElement>('#visualizer')!,
   play: document.querySelector<HTMLButtonElement>('#play')!,
   position: document.querySelector<HTMLInputElement>('#position')!,
   volume: document.querySelector<HTMLInputElement>('#volume')!,
@@ -27,6 +30,7 @@ const parts = {
 
 let ahxNode: AHXNode;
 let gainNode: GainNode;
+let visualizer: ReturnType<typeof visualize>;
 const context = await start();
 
 parts.play.onclick = async () => {
@@ -43,6 +47,13 @@ parts.volume.addEventListener('input', event => {
 
 parts.position.addEventListener('input', event => {
   ahxNode.setPosition(Number((event.target as HTMLInputElement).value));
+});
+
+let visualSettingIndex = 0;
+const visualSettings = ['sinewave', 'frequencybars', 'off'] as const;
+parts.visualizer.addEventListener('click', () => {
+  visualSettingIndex = (visualSettingIndex + 1) % visualSettings.length;
+  visualizer.setVisualSetting(visualSettings[visualSettingIndex]);
 });
 
 window.addEventListener('hashchange', () => play(location.hash.slice(1)));
@@ -62,10 +73,13 @@ async function start(context = new AudioContext()) {
   await context.audioWorklet.addModule(AHXProcessor);
   gainNode = context.createGain();
   gainNode.connect(context.destination);
+  visualizer = visualize(context, parts.visualizer);
+  visualizer.node.connect(gainNode);
+
   ahxNode = new AHXNode(context, {
     position: ({ value }: PositionEvent) => (parts.position.value = String(value)),
   });
-  ahxNode.connect(gainNode);
+  ahxNode.connect(visualizer.node);
   return context;
 }
 

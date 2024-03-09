@@ -42,6 +42,9 @@ h1 {
   font-size: 2.6em;
   line-height: 1.1;
   text-align: center;
+  margin-top: -2rem;
+  pointer-events: none;
+  text-shadow: 0 0 2px black;
 }
 
 .flex-fill {
@@ -56,8 +59,8 @@ h1 {
   flex-wrap: nowrap;
   justify-content: flex-start;
   align-items: stretch;
-  max-width: 34rem;
-  gap: 0.5rem;
+  max-width: 40rem;
+  gap: 1rem;
 }
 
 button {
