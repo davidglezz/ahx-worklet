@@ -49,6 +49,8 @@ class AHXProcessor extends AudioWorkletProcessor implements AudioWorkletProcesso
   }
 
   position({ value }: PositionEvent) {
+    this.Output.pos = [0, 0, 0, 0];
+    this.bufferFull = 0;
     this.currentPosition = Math.floor(value * this.Output.Player.Song.PositionNr);
     this.Output.Player.SetPosition(this.currentPosition);
     this.port.postMessage({
