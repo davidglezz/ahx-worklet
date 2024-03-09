@@ -75,30 +75,16 @@ describe('generate the waves', () => {
   });
   bench('new implementation', () => {
     buildAHXWaves();
+    resetComputedAHXWaves();
   });
 });
 
 describe('render song', () => {
-  describe('single song', () => {
-    bench('reference implementation', () =>
-      songs.forEach(song => runGenerator(referenceImplementationDump(song.stringBytes))),
-    );
+  bench('reference implementation', () =>
+    songs.forEach(song => runGenerator(referenceImplementationDump(song.stringBytes))),
+  );
 
-    bench('new implementation', () =>
-      songs.forEach(song => {
-        runGenerator(newImplementationDump(song.arrayBuffer));
-        resetComputedAHXWaves();
-      }),
-    );
-  });
-
-  describe('multiple songs', () => {
-    bench('reference implementation', () =>
-      songs.forEach(song => runGenerator(referenceImplementationDump(song.stringBytes))),
-    );
-
-    bench('new implementation', () =>
-      songs.forEach(song => runGenerator(newImplementationDump(song.arrayBuffer))),
-    );
-  });
+  bench('new implementation', () =>
+    songs.forEach(song => runGenerator(newImplementationDump(song.arrayBuffer))),
+  );
 });

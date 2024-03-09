@@ -8,6 +8,14 @@ export interface AHXEnvelope {
   rVolume: number;
 }
 
+export interface AHXPlistEntry {
+  Note: number;
+  Fixed: number;
+  Waveform: Waveform;
+  FX: [number, number];
+  FXParam: [number, number];
+}
+
 export interface AHXInstrument {
   Name: string;
   Volume: number;
@@ -24,7 +32,8 @@ export interface AHXInstrument {
   VibratoSpeed: number;
   HardCutRelease: number;
   HardCutReleaseFrames: number;
-  PList: AHXPList;
+  PerfSpeed: number;
+  PerfList: AHXPlistEntry[];
 }
 
 // eslint-disable-next-line no-restricted-syntax
@@ -71,20 +80,6 @@ export interface AHXStep {
 
 export type AHXTrack = AHXStep[];
 
-export interface AHXPlistEntry {
-  Note: number;
-  Fixed: number;
-  Waveform: Waveform;
-  FX: [number, number];
-  FXParam: [number, number];
-}
-
-export interface AHXPList {
-  Speed: number;
-  Length: number;
-  Entries: AHXPlistEntry[];
-}
-
 const clamp = (v: number, min: number, max: number) =>
   v < min ? min
   : v > max ? max
@@ -106,8 +101,6 @@ export class AHXSong {
   PositionNr: number;
   TrackLength: number;
   TrackNr: number;
-  InstrumentNr: number;
-  SubsongNr: number;
   Revision: number;
   SpeedMultiplier: number;
   Positions: AHXPosition[];
@@ -141,21 +134,23 @@ export class AHXSong {
     this.Restart = (view.getUint8(8) << 8) | view.getUint8(9);
     this.TrackLength = view.getUint8(10);
     this.TrackNr = view.getUint8(11);
-    this.InstrumentNr = view.getUint8(12);
-    this.SubsongNr = view.getUint8(13);
+    this.Instruments = Array.from({ length: view.getUint8(12) + 1 });
 
     // Subsongs //////////////////////////////////////////
     this.Subsongs = Array.from(
-      { length: this.SubsongNr },
+      { length: view.getUint8(13) },
       () => (view.getUint8(SBPtr++) << 8) | view.getUint8(SBPtr++),
     );
 
     // Position List /////////////////////////////////////
     this.Positions = Array.from({ length: this.PositionNr }, () => {
-      const Pos: AHXPosition = { Track: [], Transpose: [] };
+      const Pos: AHXPosition = {
+        Track: Array.from({ length: 4 }),
+        Transpose: Array.from({ length: 4 }),
+      };
       for (let j = 0; j < 4; j++) {
-        Pos.Track.push(view.getUint8(SBPtr++));
-        Pos.Transpose.push(view.getInt8(SBPtr++));
+        Pos.Track[j] = view.getUint8(SBPtr++);
+        Pos.Transpose[j] = view.getInt8(SBPtr++);
       }
       return Pos;
     });
@@ -181,7 +176,6 @@ export class AHXSong {
     });
 
     // Instruments ///////////////////////////////////////
-    this.Instruments = Array.from({ length: this.InstrumentNr });
     // Empty instrument
     this.Instruments[0] = {
       Name: '',
@@ -207,10 +201,11 @@ export class AHXSong {
       VibratoSpeed: 0,
       HardCutRelease: 0,
       HardCutReleaseFrames: 0,
-      PList: { Speed: 0, Length: 0, Entries: [] },
+      PerfSpeed: 0,
+      PerfList: [],
     };
 
-    for (let i = 1; i < this.InstrumentNr + 1; i++) {
+    for (let i = 1; i < this.Instruments.length; i++) {
       const Instrument: AHXInstrument = {
         Name: readString(view, NamePtr),
         Volume: view.getUint8(SBPtr + 0),
@@ -236,16 +231,13 @@ export class AHXSong {
         VibratoSpeed: view.getUint8(SBPtr + 15),
         HardCutRelease: view.getUint8(SBPtr + 14) & 0x80 ? 1 : 0,
         HardCutReleaseFrames: (view.getUint8(SBPtr + 14) >> 4) & 7,
-        PList: {
-          Speed: view.getUint8(SBPtr + 20),
-          Length: view.getUint8(SBPtr + 21),
-          Entries: [],
-        },
+        PerfSpeed: view.getUint8(SBPtr + 20),
+        PerfList: Array.from({ length: view.getUint8(SBPtr + 21) }),
       };
       NamePtr += Instrument.Name.length + 1;
       SBPtr += 22;
 
-      for (let j = 0; j < Instrument.PList.Length; j++) {
+      for (let j = 0; j < Instrument.PerfList.length; j++) {
         const byte0 = view.getUint8(SBPtr++);
         const byte1 = view.getUint8(SBPtr++);
         const byte2 = view.getUint8(SBPtr++);
@@ -258,7 +250,7 @@ export class AHXSong {
           FX: [(byte0 >> 2) & 7, (byte0 >> 5) & 7],
           FXParam: [byte2, byte3],
         };
-        Instrument.PList.Entries.push(Entry);
+        Instrument.PerfList[j] = Entry;
       }
       this.Instruments[i] = Instrument;
     }
@@ -340,7 +332,7 @@ export class AHXVoice {
   PerfSpeed = 0;
   PerfWait = 0;
   WaveLength = 0;
-  PerfList!: AHXPList;
+  PerfList!: AHXPlistEntry[];
   NoteDelayWait = 0;
   NoteDelayOn = 0;
   NoteCutWait = 0;
@@ -665,12 +657,13 @@ export class AHXPlayer {
     170, 160, 151, 143, 135, 127, 120, 113,
   ];
 
-  InitSong(song: AHXSong) {
+  InitSong(song: AHXSong, subsong = 0) {
     this.Song = song;
+    this.InitSubsong(subsong);
   }
 
   InitSubsong(Nr: number) {
-    if (Nr > this.Song.SubsongNr) return 0;
+    if (Nr > this.Song.Subsongs.length) return 0;
 
     if (Nr === 0) this.PosNr = 0;
     else this.PosNr = this.Song.Subsongs[Nr - 1];
@@ -862,8 +855,8 @@ export class AHXPlayer {
       voice.FilterPos = 32;
       //Init PerfList
       voice.PerfWait = voice.PerfCurrent = 0;
-      voice.PerfSpeed = voice.Instrument.PList.Speed;
-      voice.PerfList = voice.Instrument.PList;
+      voice.PerfSpeed = voice.Instrument.PerfSpeed;
+      voice.PerfList = voice.Instrument.PerfList;
     }
     //NoInstrument
     voice.PeriodSlideOn = 0;
@@ -1023,10 +1016,10 @@ export class AHXPlayer {
       } else voice.VibratoDelay--;
     }
     //PList
-    if (voice.Instrument && voice.PerfCurrent < voice.Instrument.PList.Length) {
+    if (voice.Instrument && voice.PerfCurrent < voice.Instrument.PerfList.length) {
       if (--voice.PerfWait <= 0) {
         const Cur = voice.PerfCurrent++;
-        const { FX, FXParam, Fixed, Note, Waveform } = voice.PerfList.Entries[Cur];
+        const { FX, FXParam, Fixed, Note, Waveform } = voice.PerfList[Cur];
         voice.PerfWait = voice.PerfSpeed;
         if (Waveform) {
           voice.Waveform = Waveform;
@@ -1273,16 +1266,14 @@ export class AHXPlayer {
 
 export class AHXOutput {
   pos = [0, 0, 0, 0];
-  Frequency = 0;
-  Bits = 0;
   BufferSize = 0;
   MixingBuffer: number[] = [];
 
-  constructor(public Player = new AHXPlayer()) {}
-
-  Init(Frequency: number, Bits: number) {
-    this.Frequency = Frequency;
-    this.Bits = Bits;
+  constructor(
+    public Player = new AHXPlayer(),
+    public Frequency = 48000,
+    public Bits = 16,
+  ) {
     this.BufferSize = Math.floor(Frequency / 50);
     this.MixingBuffer = Array.from({ length: this.BufferSize });
   }

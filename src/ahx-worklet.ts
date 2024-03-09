@@ -1,10 +1,10 @@
-import { AHXOutput, AHXSong } from './ahx.ts';
+import { AHXOutput, AHXPlayer, AHXSong } from './ahx.ts';
 import type { LoadEvent, MessageToWorklet, PositionEvent } from './types.ts';
 
 /// <reference types="@types/audioworklet" />
 
 class AHXProcessor extends AudioWorkletProcessor implements AudioWorkletProcessorImpl {
-  Output: AHXOutput = new AHXOutput();
+  Output: AHXOutput = new AHXOutput(new AHXPlayer(), sampleRate, 16);
 
   bufferFull = 0;
   bufferOffset = 0;
@@ -60,8 +60,6 @@ class AHXProcessor extends AudioWorkletProcessor implements AudioWorkletProcesso
   load({ songData }: LoadEvent) {
     const song = new AHXSong(songData);
     this.Output.Player.InitSong(song);
-    this.Output.Player.InitSubsong(0);
-    this.Output.Init(sampleRate, 16);
     this.currentPosition = 0;
     this.port.postMessage({
       id: 'position',

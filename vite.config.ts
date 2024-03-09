@@ -8,7 +8,6 @@ export default defineConfig({
       exclude: [
         '**/*.bench.ts',
         '**/*.d.ts',
-        'src/AHXMaster.ts',
         'src/ahx.reference-implementation.js',
         'src/main.ts',
         'src/utils.ts',

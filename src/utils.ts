@@ -6,9 +6,10 @@
  */
 export function* dump(output: any, song: any) {
   output.Player.InitSong(song);
-  output.Player.InitSubsong(0);
-  output.Init(48000, 16);
-
+  if (output.Init) {
+    output.Player.InitSubsong(0);
+    output.Init(48000, 16);
+  }
   while (!output.Player.SongEndReached) {
     output.MixBuffer();
     yield output.MixingBuffer;

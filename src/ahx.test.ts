@@ -16,7 +16,7 @@ describe('test AHX', () => {
     ['die audienz ist horenz.ahx'],
     ['drums.ahx'],
     ['frame.ahx'],
-    //['holla 2.ahx'], hangs
+    //['holla 2.ahx'],// hangs
     ['loom.ahx'],
     ['thxcolly-intro.ahx'],
     ['void.ahx'],
@@ -33,7 +33,6 @@ describe('test AHX', () => {
       const song = new AHXSong(toArrayBuffer(songBytes));
       const actual = dump(new AHXOutput(), song);
 
-      expect(JSON.stringify(song, null, 2)).toEqual(JSON.stringify(referenceSong, null, 2));
       for (const expectedChunk of expected) {
         const actualChunk = actual.next().value;
         expect(actualChunk).toHaveLength(expectedChunk.length);
