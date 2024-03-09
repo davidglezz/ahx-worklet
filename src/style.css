@@ -99,13 +99,13 @@ button {
 .list {
   overflow-y: auto;
 
-  dl {
+  ul {
     list-style: none;
     padding: 0;
     margin: 0;
   }
 
-  dt {
+  h3 {
     position: sticky;
     top: 0;
     font-weight: bold;
@@ -116,7 +116,7 @@ button {
     box-shadow: 0 0 0 0.25rem #242424;
   }
 
-  dd {
+  li {
     margin: 0rem;
 
     a {

@@ -15,9 +15,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     <input id="position" class="flex-fill" type="range" min="0.0" max="1.0" step="0.01" value="0"/>
     <input id="volume" type="range" min="0.0" max="1.0" step="0.01" value="1.0"/>
   </div>
-  <div class="list">
-    <dl id="songlist"></dl>
-  </div>
+  <div class="list" id="songlist"></div>
 `;
 
 const parts = {
@@ -91,23 +89,29 @@ async function loadSongList() {
 
 async function displaySongList() {
   const list = document.querySelector<HTMLDListElement>('#songlist')!;
-  const songs = await loadSongList();
-  let currentAuthor = '';
-  songs.forEach(song => {
-    const dd = document.createElement('dd');
-    const a = document.createElement('a');
-    a.dataset.song = song;
-    const [author, title] = song.split('/');
-    if (author !== currentAuthor) {
-      const dt = document.createElement('dt');
-      dt.textContent = author;
-      list.appendChild(dt);
-      currentAuthor = author;
-    }
-    a.textContent = title;
-    a.href = `#${encodeURIComponent(song)}`;
-    dd.appendChild(a);
-    list.appendChild(dd);
+  const songs = (await loadSongList()).map(fileName => {
+    const [author, ...titleParts] = fileName.split('/');
+    return { author, title: titleParts.join('/'), fileName };
+  });
+  Object.entries(Object.groupBy(songs, s => s.author)).forEach(([author, songs]) => {
+    const section = document.createElement('section');
+    list.appendChild(section);
+
+    const title = document.createElement('h3');
+    title.textContent = author;
+    section.appendChild(title);
+
+    const ul = document.createElement('ul');
+    section.appendChild(ul);
+    songs.forEach(({ title, fileName }) => {
+      const li = document.createElement('li');
+      ul.appendChild(li);
+      const a = document.createElement('a');
+      a.dataset.song = fileName;
+      a.textContent = title;
+      a.href = `#${encodeURIComponent(fileName)}`;
+      li.appendChild(a);
+    });
   });
 }
 
