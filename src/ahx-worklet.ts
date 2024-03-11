@@ -16,6 +16,7 @@ class AHXProcessor extends AudioWorkletProcessor implements AudioWorkletProcesso
   }
 
   process(_input: never, outputs: Float32Array[][], _params: never): boolean {
+    if (!this.Output.Player.Song) return false;
     const output = outputs[0];
     const bufferSize = output[0].length;
     const left = output[0];
@@ -45,6 +46,13 @@ class AHXProcessor extends AudioWorkletProcessor implements AudioWorkletProcesso
       this.currentPosition = this.Output.Player.PosNr;
     }
 
+    /*this.port.postMessage({
+        id: 'stats',
+        pos: `${this.Output.Player.PosNr} / ${this.Output.Player.Song.PositionNr}`,
+        time: this.Output.Player.PlayingTime,
+        songEndReached: this.Output.Player.SongEndReached,
+    });*/
+
     return true;
   }
 
@@ -53,20 +61,18 @@ class AHXProcessor extends AudioWorkletProcessor implements AudioWorkletProcesso
     this.bufferFull = 0;
     this.currentPosition = Math.floor(value * this.Output.Player.Song.PositionNr);
     this.Output.Player.SetPosition(this.currentPosition);
-    this.port.postMessage({
+    /*this.port.postMessage({
       id: 'position',
       value: this.Output.Player.PosNr / this.Output.Player.Song.PositionNr,
-    });
+    });*/
   }
 
   load({ songData }: LoadEvent) {
     const song = new AHXSong(songData);
     this.Output.Player.InitSong(song);
-    this.currentPosition = 0;
-    this.port.postMessage({
-      id: 'position',
-      value: this.Output.Player.PosNr / this.Output.Player.Song.PositionNr,
-    });
+    this.currentPosition = this.Output.Player.PosNr;
+    this.port.postMessage({ id: 'songInfo', songInfo: song });
+    this.port.postMessage({ id: 'position', value: 0 });
   }
 }
 

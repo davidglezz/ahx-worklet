@@ -14,8 +14,14 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <h1>AHX worklet</h1>
   <div class="controls">
     <button id="play" class="btn-icon" type="button">${icons.play}</button>
-    <input id="position" class="flex-fill" type="range" min="0.0" max="1.0" step="0.01" value="0"/>
-    <input id="volume" type="range" min="0.0" max="1.0" step="0.01" value="1.0"/>
+    <div class="flex-col flex-fill">
+      <label for="position">-</label>
+      <input id="position" type="range" min="0.0" max="1.0" step="0.01" value="0"/>
+    </div>
+    <div class="flex-col">
+      <label for="volume">100%</label>
+      <input id="volume" type="range" min="0.0" max="1.0" step="0.01" value="1.0"/>
+    </div>
   </div>
   <div class="list" id="songlist"></div>
 `;
@@ -24,7 +30,9 @@ const parts = {
   visualizer: document.querySelector<HTMLCanvasElement>('#visualizer')!,
   play: document.querySelector<HTMLButtonElement>('#play')!,
   position: document.querySelector<HTMLInputElement>('#position')!,
+  positionLabel: document.querySelector<HTMLInputElement>('[for=position]')!,
   volume: document.querySelector<HTMLInputElement>('#volume')!,
+  volumeLabel: document.querySelector<HTMLInputElement>('[for=volume]')!,
   songlist: document.querySelector<HTMLDivElement>('#songlist')!,
 };
 
@@ -42,7 +50,9 @@ parts.play.onclick = async () => {
 };
 
 parts.volume.addEventListener('input', event => {
-  gainNode.gain.value = Number((event.target as HTMLInputElement).value);
+  const value = (event.target as HTMLInputElement).value;
+  gainNode.gain.value = Number(value);
+  parts.volumeLabel.textContent = `${Math.round(Number(value) * 100)}%`;
 });
 
 parts.position.addEventListener('input', event => {
@@ -78,6 +88,12 @@ async function start(context = new AudioContext()) {
 
   ahxNode = new AHXNode(context, {
     position: ({ value }: PositionEvent) => (parts.position.value = String(value)),
+    songInfo: ({ songInfo }) => {
+      parts.positionLabel.textContent = songInfo.Name;
+      parts.position.step = String(1 / songInfo.Positions.length);
+      console.log(songInfo); // eslint-disable-line no-console
+    },
+    stats: console.log, // eslint-disable-line no-console
   });
   ahxNode.connect(visualizer.node);
   return context;
