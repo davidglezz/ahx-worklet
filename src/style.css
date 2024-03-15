@@ -47,6 +47,7 @@ body {
 
 h1 {
   font-size: 2.6em;
+  font-size: clamp(2rem, 4vw + 1rem, 3rem);
   line-height: 1.1;
   text-align: center;
   margin-top: -2rem;
@@ -72,7 +73,9 @@ h1 {
   flex-wrap: nowrap;
   justify-content: flex-start;
   align-items: stretch;
+  width: 100%;
   max-width: 40rem;
+  max-height: 100vh;
   gap: 1rem;
 }
 
@@ -128,8 +131,33 @@ button {
   }
 }
 
+.controls {
+  display: flex;
+  gap: 1rem;
+  padding: 0 0.5rem;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: clip;
+
+  input,
+  label {
+    width: 100%;
+  }
+
+  .volume {
+    flex: 0 0 5rem;
+  }
+
+  .position {
+    overflow: hidden;
+  }
+}
+
 .list {
+  overflow: hidden;
   overflow-y: auto;
+  padding: 0 0.5rem;
 
   ul {
     list-style: none;
@@ -142,7 +170,7 @@ button {
     top: 0;
     font-weight: bold;
     padding: 0.5rem 1rem;
-    margin: 0.25rem;
+    margin: 0.25rem 0;
     border-radius: 0.5rem;
     background-color: #1a1a1a;
     box-shadow: 0 0 0 0.25rem #242424;
@@ -157,7 +185,7 @@ button {
       cursor: pointer;
       display: block;
       padding: 0.5rem 1rem;
-      margin: 0.25rem;
+      margin: 0.25rem 0;
       color: inherit;
       text-decoration: none;
       transition: background-color 0.2s;
@@ -171,9 +199,4 @@ button {
       }
     }
   }
-}
-
-.controls {
-  display: flex;
-  gap: 1rem;
 }

@@ -14,11 +14,11 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <h1>AHX worklet</h1>
   <div class="controls">
     <button id="play" class="btn-icon" type="button">${icons.play}</button>
-    <div class="flex-col flex-fill">
+    <div class="position flex-col flex-fill">
       <label for="position">-</label>
       <input id="position" type="range" min="0.0" max="1.0" step="0.01" value="0"/>
     </div>
-    <div class="flex-col">
+    <div class="volume flex-col">
       <label for="volume">100%</label>
       <input id="volume" type="range" min="0.0" max="1.0" step="0.01" value="1.0"/>
     </div>
