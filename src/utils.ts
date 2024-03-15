@@ -20,6 +20,10 @@ export function toArrayBuffer(buffer: Buffer) {
   return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
 }
 
+function easeInOutQuad(x: number): number {
+  return x < 0.5 ? 2 * x * x : 1 - (-2 * x + 2) ** 2 / 2;
+}
+
 type VisualizeType = 'sinewave' | 'frequencybars' | 'off';
 
 export function visualize(
@@ -34,8 +38,7 @@ export function visualize(
 
   const analyser = audioCtx.createAnalyser();
   analyser.minDecibels = -90;
-  analyser.maxDecibels = -10;
-  analyser.smoothingTimeConstant = 0.85;
+  analyser.maxDecibels = -30;
 
   const WIDTH = canvas.width;
   const HEIGHT = canvas.height;
@@ -75,9 +78,10 @@ export function visualize(
         analyser.getByteFrequencyData(dataArray);
         canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
         for (let i = 0; i < bufferLength; i++) {
-          const barHeight = dataArray[i];
-          canvasCtx.fillStyle = `rgba(255, 255, 255, ${barHeight / 255})`;
-          canvasCtx.fillRect(i * barWidth, HEIGHT - barHeight / 2, barWidth - 1, barHeight / 2);
+          const v = easeInOutQuad(dataArray[i] / 255);
+          canvasCtx.fillStyle = `rgba(255, 255, 255, ${v})`;
+          const barHeight = v * HEIGHT;
+          canvasCtx.fillRect(i * barWidth, HEIGHT - barHeight, barWidth - 1, barHeight);
         }
       };
       draw();
