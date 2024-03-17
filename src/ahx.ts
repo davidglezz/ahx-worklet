@@ -37,7 +37,7 @@ export interface AHXInstrument {
 }
 
 // eslint-disable-next-line no-restricted-syntax
-const enum Waveform {
+export const enum Waveform {
   TRIANGLE = 1,
   SAWTOOTH = 2,
   SQUARE = 3,
@@ -431,20 +431,22 @@ function GenerateTriangle(Len: number) {
 }
 
 function GenerateSquare() {
-  const Buffer = [];
-  for (let ebx = 1; ebx <= 0x20; ebx++) {
-    for (let ecx = 0; ecx < (0x40 - ebx) * 2; ecx++) Buffer.push(-0x80);
-    for (let ecx = 0; ecx < ebx * 2; ecx++) Buffer.push(0x7f);
+  const Buffer = Int8Array.from({ length: 4096 });
+  for (let ebx = 0; ebx < 0x40; ebx += 2) {
+    const start1 = ebx * 0x40;
+    const start2 = start1 + 0x7e - ebx;
+    Buffer.fill(-0x80, start1, start2);
+    Buffer.fill(0x7f, start2, start2 + ebx + 2);
   }
   return Buffer;
 }
 
 function GenerateSawtooth(Len: number) {
-  const Buffer = [];
+  const Buffer = Array.from({ length: Len });
   const ebx = Math.floor(256 / (Len - 1));
   let eax = -128;
   for (let ecx = 0; ecx < Len; ecx++) {
-    Buffer.push(eax);
+    Buffer[ecx] = eax;
     eax += ebx;
   }
   return Buffer;

@@ -7,7 +7,7 @@ import {
   AHXSong as ReferenceSong,
   AHXWaves as ReferenceWaves,
 } from './ahx.reference-implementation.js';
-import { AHXOutput, AHXSong, getAHXWaves } from './ahx.ts';
+import { AHXOutput, AHXSong, Waveform, getAHXWaves } from './ahx.ts';
 import { dump, toArrayBuffer } from './utils.ts';
 
 describe('test AHX', () => {
@@ -27,8 +27,8 @@ describe('test AHX', () => {
     ['100th.ahx', '80c4b95a0bf36fe5f45aae4a31b43b9fe735aaba1f687bd182df9d3ce3c945fa'],
     ['choochoo.ahx', '695a49a80c8795d7063e74d997e848f81b93b4b5de0a43cac612117a5a35771b'],
     ['shamrock.ahx', '121dcb52c7c88fa924ff9ba13a777f8e87479a213178ad68c51986e197cc60b5'],
-  ])('it should output the same buffer values', (file, sha256) => {
-    it.skip(`file: ${file}`, ({ expect }) => {
+  ])('%s', (file, sha256) => {
+    it.skip(`genrerate and compare hash`, ({ expect }) => {
       const songBytes = readFileSync(`test-songs/${file}`);
 
       const binString = new DataType();
@@ -55,7 +55,7 @@ describe('test AHX', () => {
       console.log(sha256); // eslint-disable-line no-console
     });
 
-    it(`should have the same hash: ${file}`, ({ expect }) => {
+    it(`should have the same hash`, ({ expect }) => {
       const songBytes = readFileSync(`test-songs/${file}`);
       const song = new AHXSong(toArrayBuffer(songBytes));
       const actual = dump(new AHXOutput(), song);
@@ -67,9 +67,11 @@ describe('test AHX', () => {
     });
   });
 
-  it.skip('should generate the same waves', () => {
-    const expected = ReferenceWaves().FilterSets;
-    const actual = getAHXWaves();
-    expect(actual).toEqual(expected);
+  describe('should generate the same waves', () => {
+    it('should generate the same Squares', () => {
+      const expected = new Int8Array(ReferenceWaves().FilterSets[31].Squares);
+      const actual = getAHXWaves()[31][Waveform.SQUARE];
+      expect(actual).toEqual(expected);
+    });
   });
 });
