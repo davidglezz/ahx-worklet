@@ -33,7 +33,7 @@ class AHXProcessor extends AudioWorkletProcessor implements AudioWorkletProcesso
       let can = Math.min(this.bufferFull - this.bufferOffset, want);
       want -= can;
       while (can-- > 0) {
-        left[out] = right[out] = this.Output.MixingBuffer[this.bufferOffset++] / (128 * 4);
+        left[out] = right[out] = this.Output.MixingBuffer[this.bufferOffset++] / 512;
         out++;
       }
       if (this.bufferOffset >= this.bufferFull) {
