@@ -39,6 +39,7 @@ export function visualize(
   const analyser = audioCtx.createAnalyser();
   analyser.minDecibels = -90;
   analyser.maxDecibels = -30;
+  analyser.smoothingTimeConstant = 0.65;
 
   const WIDTH = canvas.width;
   const HEIGHT = canvas.height;
