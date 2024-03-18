@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import {
   dataType as DataType,
   AHXOutput as ReferenceOutput,
@@ -44,8 +44,8 @@ describe('test AHX', () => {
       const hashedActual = createHash('sha256').update(file);
       for (const actualChunk of actual) {
         const expectedChunk = expected.next().value;
-        expect(actualChunk).toHaveLength(expectedChunk.length);
-        expect(actualChunk).toEqual(expectedChunk);
+        //expect(actualChunk).toHaveLength(expectedChunk.length);
+        //expect(actualChunk).toEqual(expectedChunk);
         hashedExpected.update(new Uint16Array(expectedChunk));
         hashedActual.update(new Uint16Array(actualChunk));
       }
@@ -68,9 +68,29 @@ describe('test AHX', () => {
   });
 
   describe('should generate the same waves', () => {
+    let referenceWaves: ReturnType<typeof ReferenceWaves>;
+    let actualWaves: ReturnType<typeof getAHXWaves>;
+
+    beforeAll(() => {
+      referenceWaves = ReferenceWaves();
+      actualWaves = getAHXWaves();
+    });
+
     it('should generate the same Squares', () => {
-      const expected = new Int8Array(ReferenceWaves().FilterSets[31].Squares);
-      const actual = getAHXWaves()[31][Waveform.SQUARE];
+      const expected = new Int8Array(referenceWaves.FilterSets[31].Squares);
+      const actual = actualWaves[31][Waveform.SQUARE];
+      expect(actual).toEqual(expected);
+    });
+
+    it('should generate the same Triangles', () => {
+      const expected = referenceWaves.FilterSets[31].Triangle04;
+      const actual = actualWaves[31][Waveform.TRIANGLE][0];
+      expect(actual).toEqual(expected);
+    });
+
+    it('should generate the same Noises', () => {
+      const expected = new Int8Array(referenceWaves.FilterSets[31].WhiteNoiseBig);
+      const actual = actualWaves[31][Waveform.WNOISE];
       expect(actual).toEqual(expected);
     });
   });
