@@ -1159,7 +1159,7 @@ export class AHXPlayer {
 export class AHXOutput {
   pos = [0, 0, 0, 0];
   BufferSize = 0;
-  MixingBuffer: number[] = [];
+  MixingBuffer: Int16Array;
 
   constructor(
     public Player = new AHXPlayer(),
@@ -1167,7 +1167,7 @@ export class AHXOutput {
     public Bits = 16,
   ) {
     this.BufferSize = Math.floor(Frequency / 50);
-    this.MixingBuffer = Array.from({ length: this.BufferSize });
+    this.MixingBuffer = Int16Array.from({ length: this.BufferSize });
   }
 
   MixBuffer() {
