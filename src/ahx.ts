@@ -262,7 +262,7 @@ export class AHXVoice {
   // Read those variables for mixing!
   VoiceVolume = 0;
   VoicePeriod = 0;
-  VoiceBuffer: number[] = []; //char VoiceBuffer[0x281]; // for oversampling optimization!
+  readonly VoiceBuffer = new Int8Array(0x281); // for oversampling optimization!
 
   Track = 0;
   Transpose = 0;
@@ -337,7 +337,7 @@ export class AHXVoice {
   NoteDelayOn = 0;
   NoteCutWait = 0;
   NoteCutOn = 0;
-  AudioSource: number[] = [];
+  AudioSource: Int8Array = new Int8Array();
   AudioPeriod = 0;
   AudioVolume = 0;
   //SquareTempBuffer: new Array(0x80), //char SquareTempBuffer[0x80]: 0,
@@ -1009,7 +1009,7 @@ export class AHXPlayer {
       if (X--) SquareOfs = X * 0x80; // <- WTF!?
       const Delta = 32 >> voice.WaveLength;
       const AudioLen = (1 << voice.WaveLength) * 4;
-      voice.AudioSource = Array.from({ length: AudioLen });
+      voice.AudioSource = Int8Array.from({ length: AudioLen });
       for (let i = 0; i < AudioLen; i++) {
         voice.AudioSource[i] = SquarePtr[SquareOfs];
         SquareOfs += Delta;
@@ -1030,9 +1030,9 @@ export class AHXPlayer {
         if (voice.Waveform === Waveform.WNOISE) {
           // white noise
           const WNStart = this.WNRandom & (2 * 0x280 - 1) & ~1;
-          voice.AudioSource = this.Waves[FilterSet][voice.Waveform].slice(WNStart, WNStart + 0x280);
+          const wnoise = this.Waves[FilterSet][voice.Waveform];
+          voice.AudioSource = new Int8Array(wnoise.buffer, WNStart, 0x280);
           //AddRandomMoving
-          //GoOnRandom
           this.WNRandom += 2239384;
           this.WNRandom = ((((this.WNRandom >> 8) | (this.WNRandom << 24)) + 782323) ^ 75) - 6735;
         } else {
@@ -1075,16 +1075,18 @@ export class AHXPlayer {
     if (voice.NewWaveform) {
       if (voice.Waveform === Waveform.WNOISE) {
         // for white noise, copy whole 0x280 samples
-        voice.VoiceBuffer = voice.AudioSource;
+        voice.VoiceBuffer.set(voice.AudioSource, 0);
       } else {
         const WaveLoops = (1 << (5 - voice.WaveLength)) * 5;
         const LoopLen = 4 * (1 << voice.WaveLength);
+        const Samples = WaveLoops * LoopLen;
         if (!voice.AudioSource.length) {
-          // New or fill?
-          voice.VoiceBuffer = Array.from({ length: WaveLoops * LoopLen });
+          voice.VoiceBuffer.fill(0, 0, Samples);
         } else {
-          const Loop = voice.AudioSource.slice(0, LoopLen);
-          voice.VoiceBuffer = Array.from<number[]>({ length: WaveLoops }).fill(Loop).flat();
+          const Loop = new Int8Array(voice.AudioSource.buffer, 0, LoopLen);
+          for (let pos = 0; pos < Samples; pos += LoopLen) {
+            voice.VoiceBuffer.set(Loop, pos);
+          }
         }
       }
       //voice.VoiceBuffer[0x280] = voice.VoiceBuffer[0];

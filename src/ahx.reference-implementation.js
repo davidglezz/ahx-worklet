@@ -1,3 +1,4 @@
+// @ts-check
 /*
 	usually the codeflow is like this:
 	
@@ -1130,28 +1131,28 @@ function AHXPlayer(waves) {
 					
 					if(this.Voices[v].Waveform == 4-1) { // white noise
 						var WNStart = (this.WNRandom & (2*0x280-1)) & ~1;
-						this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].WhiteNoiseBig.slice(WNStart, WNStart + 0x280);
+						this.Voices[v].AudioSource = Array.from(this.Waves.FilterSets[FilterSet].WhiteNoiseBig).slice(WNStart, WNStart + 0x280);
 						//AddRandomMoving
 						//GoOnRandom
 						this.WNRandom += 2239384;
 						this.WNRandom = ((((this.WNRandom >> 8) | (this.WNRandom << 24)) + 782323) ^ 75) - 6735;
 					} else if(this.Voices[v].Waveform == 1-1) { // triangle
 						switch(this.Voices[v].WaveLength) {
-						case 0: this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Triangle04.slice(); break;
-						case 1: this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Triangle08.slice(); break;
-						case 2: this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Triangle10.slice(); break;
-						case 3: this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Triangle20.slice(); break;
-						case 4: this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Triangle40.slice(); break;
-						case 5: this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Triangle80.slice(); break;
+						case 0: this.Voices[v].AudioSource = Array.from(this.Waves.FilterSets[FilterSet].Triangle04); break;
+						case 1: this.Voices[v].AudioSource = Array.from(this.Waves.FilterSets[FilterSet].Triangle08); break;
+						case 2: this.Voices[v].AudioSource = Array.from(this.Waves.FilterSets[FilterSet].Triangle10); break;
+						case 3: this.Voices[v].AudioSource = Array.from(this.Waves.FilterSets[FilterSet].Triangle20); break;
+						case 4: this.Voices[v].AudioSource = Array.from(this.Waves.FilterSets[FilterSet].Triangle40); break;
+						case 5: this.Voices[v].AudioSource = Array.from(this.Waves.FilterSets[FilterSet].Triangle80); break;
 						}
 					} else if(this.Voices[v].Waveform == 2-1) { // sawtooth
 						switch(this.Voices[v].WaveLength) {
-						case 0: this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Sawtooth04.slice(); break;
-						case 1: this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Sawtooth08.slice(); break;
-						case 2: this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Sawtooth10.slice(); break;
-						case 3: this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Sawtooth20.slice(); break;
-						case 4: this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Sawtooth40.slice(); break;
-						case 5: this.Voices[v].AudioSource = this.Waves.FilterSets[FilterSet].Sawtooth80.slice(); break;
+						case 0: this.Voices[v].AudioSource = Array.from(this.Waves.FilterSets[FilterSet].Sawtooth04); break;
+						case 1: this.Voices[v].AudioSource = Array.from(this.Waves.FilterSets[FilterSet].Sawtooth08); break;
+						case 2: this.Voices[v].AudioSource = Array.from(this.Waves.FilterSets[FilterSet].Sawtooth10); break;
+						case 3: this.Voices[v].AudioSource = Array.from(this.Waves.FilterSets[FilterSet].Sawtooth20); break;
+						case 4: this.Voices[v].AudioSource = Array.from(this.Waves.FilterSets[FilterSet].Sawtooth40); break;
+						case 5: this.Voices[v].AudioSource = Array.from(this.Waves.FilterSets[FilterSet].Sawtooth80); break;
 						}
 					}
 				}
