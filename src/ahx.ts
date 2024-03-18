@@ -67,8 +67,8 @@ export type AHXWaves = [
 ][];
 
 export interface AHXPosition {
-  Track: number[];
-  Transpose: number[];
+  Track: [number, number, number, number];
+  Transpose: [number, number, number, number];
 }
 
 export interface AHXStep {
@@ -98,9 +98,7 @@ export function readString(view: DataView, pos: number) {
 export class AHXSong {
   Name: string;
   Restart: number;
-  PositionNr: number;
   TrackLength: number;
-  TrackNr: number;
   Revision: number;
   SpeedMultiplier: number;
   Positions: AHXPosition[];
@@ -130,10 +128,9 @@ export class AHXSong {
     NamePtr += this.Name.length + 1;
     this.SpeedMultiplier = ((view.getUint8(6) >> 5) & 3) + 1;
 
-    this.PositionNr = ((view.getUint8(6) & 0xf) << 8) | view.getUint8(7);
+    const PositionNr = ((view.getUint8(6) & 0xf) << 8) | view.getUint8(7);
     this.Restart = (view.getUint8(8) << 8) | view.getUint8(9);
     this.TrackLength = view.getUint8(10);
-    this.TrackNr = view.getUint8(11);
     this.Instruments = Array.from({ length: view.getUint8(12) + 1 });
 
     // Subsongs //////////////////////////////////////////
@@ -143,10 +140,10 @@ export class AHXSong {
     );
 
     // Position List /////////////////////////////////////
-    this.Positions = Array.from({ length: this.PositionNr }, () => {
+    this.Positions = Array.from({ length: PositionNr }, () => {
       const Pos: AHXPosition = {
-        Track: Array.from({ length: 4 }),
-        Transpose: Array.from({ length: 4 }),
+        Track: [0, 0, 0, 0] as const,
+        Transpose: [0, 0, 0, 0] as const,
       };
       for (let j = 0; j < 4; j++) {
         Pos.Track[j] = view.getUint8(SBPtr++);
@@ -156,7 +153,7 @@ export class AHXSong {
     });
 
     // Tracks ////////////////////////////////////////////
-    this.Tracks = Array.from({ length: this.TrackNr + 1 }, (_, i) => {
+    this.Tracks = Array.from({ length: view.getUint8(11) + 1 }, (_, i) => {
       const Track: AHXTrack = Array.from({ length: this.TrackLength });
       if (i === 0 && (view.getUint8(6) & 0x80) === 0x80) {
         // empty track
@@ -258,7 +255,6 @@ export class AHXSong {
 }
 
 export class AHXVoice {
-  number: number;
   // Read those variables for mixing!
   VoiceVolume = 0;
   VoicePeriod = 0;
@@ -341,10 +337,6 @@ export class AHXVoice {
   AudioPeriod = 0;
   AudioVolume = 0;
   //SquareTempBuffer: new Array(0x80), //char SquareTempBuffer[0x80]: 0,
-
-  constructor(number: number) {
-    this.number = number;
-  }
 
   CalcADSR() {
     this.ADSR.aFrames = this.Instrument.Envelope.aFrames;
@@ -528,7 +520,7 @@ export class AHXPlayer {
   NoteNr = 0;
   PosJumpNote = 0;
   Waves = getAHXWaves();
-  Voices!: AHXVoice[] & { length: 4 };
+  Voices!: [AHXVoice, AHXVoice, AHXVoice, AHXVoice];
   WNRandom = 0;
   Song!: AHXSong;
   PlayingTime = 0;
@@ -566,26 +558,22 @@ export class AHXPlayer {
     this.GetNewPosition = true;
     this.SongEndReached = false;
     this.PlayingTime = 0;
-    this.Voices = [new AHXVoice(0), new AHXVoice(1), new AHXVoice(2), new AHXVoice(3)];
+    this.Voices = [new AHXVoice(), new AHXVoice(), new AHXVoice(), new AHXVoice()];
   }
 
   PlayIRQ() {
     if (this.Tempo > 0 && this.StepWaitFrames <= 0) {
       if (this.GetNewPosition) {
-        let NextPos = this.PosNr + 1 === this.Song.PositionNr ? 0 : this.PosNr + 1;
+        const NextPos = this.PosNr + 1 >= this.Song.Positions.length ? 0 : this.PosNr + 1;
         if (this.PosNr >= this.Song.Positions.length) {
           // Track range error? 01
-          this.PosNr = this.Song.PositionNr - 1;
+          this.PosNr = this.Song.Positions.length - 1;
         }
-        if (NextPos >= this.Song.Positions.length) {
-          // Track range error? 02
-          NextPos = this.Song.PositionNr - 1;
-        }
-        this.Voices.forEach(voice => {
-          voice.Track = this.Song.Positions[this.PosNr].Track[voice.number];
-          voice.Transpose = this.Song.Positions[this.PosNr].Transpose[voice.number];
-          voice.NextTrack = this.Song.Positions[NextPos].Track[voice.number];
-          voice.NextTranspose = this.Song.Positions[NextPos].Transpose[voice.number];
+        this.Voices.forEach((voice, i) => {
+          voice.Track = this.Song.Positions[this.PosNr].Track[i];
+          voice.Transpose = this.Song.Positions[this.PosNr].Transpose[i];
+          voice.NextTrack = this.Song.Positions[NextPos].Track[i];
+          voice.NextTranspose = this.Song.Positions[NextPos].Transpose[i];
         });
         this.GetNewPosition = false;
       }
@@ -610,7 +598,7 @@ export class AHXPlayer {
         this.PosJumpNote = 0;
         this.PosNr = this.PosJump;
         this.PosJump = 0;
-        if (this.PosNr >= this.Song.PositionNr) {
+        if (this.PosNr >= this.Song.Positions.length) {
           this.SongEndReached = true;
           this.PosNr = this.Song.Restart;
         }
@@ -622,7 +610,7 @@ export class AHXPlayer {
   }
 
   NextPosition() {
-    this.SetPosition(this.PosNr + 1 === this.Song.PositionNr ? 0 : this.PosNr + 1);
+    this.SetPosition(this.PosNr + 1 === this.Song.Positions.length ? 0 : this.PosNr + 1);
   }
 
   PrevPosition() {
@@ -630,7 +618,7 @@ export class AHXPlayer {
   }
 
   SetPosition(n: number) {
-    this.PosNr = clamp(n, 0, this.Song.PositionNr - 1);
+    this.PosNr = clamp(n, 0, this.Song.Positions.length - 1);
     this.StepWaitFrames = 0;
     this.GetNewPosition = true;
   }
