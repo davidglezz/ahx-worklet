@@ -402,7 +402,7 @@ export function buildAHXWaves() {
 }
 
 function GenerateTriangle(length: number) {
-  const Buffer = Int8Array.from({ length });
+  const Buffer = Array.from({ length });
   const q = length >> 2;
   const step = 128 / q;
   let value = 0;
