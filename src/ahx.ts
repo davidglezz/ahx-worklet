@@ -401,31 +401,17 @@ export function buildAHXWaves() {
   return filterSets;
 }
 
-function GenerateTriangle(Len: number) {
-  const Buffer: number[] = [];
-  const d2 = Len;
-  const d5 = d2 >> 2;
-  const d1 = 128 / d5;
-  const d4 = -(d2 >> 1);
-  let eax = 0;
-  for (let ecx = 0; ecx < d5; ecx++) {
-    Buffer.push(eax);
-    eax += d1;
-  }
-  Buffer.push(0x7f);
-  if (d5 !== 1) {
-    eax = 128;
-    for (let ecx = 0; ecx < d5 - 1; ecx++) {
-      eax -= d1;
-      Buffer.push(eax);
-    }
-  }
-  let esi = Buffer.length + d4;
-  for (let ecx = 0; ecx < d5 * 2; ecx++) {
-    let neu = Buffer[esi++];
-    if (neu === 0x7f) neu = -0x80;
-    else neu = -neu;
-    Buffer.push(neu);
+function GenerateTriangle(length: number) {
+  const Buffer = Int8Array.from({ length });
+  const q = length >> 2;
+  const step = 128 / q;
+  let value = 0;
+  for (let i = 0; i < q; i++) {
+    Buffer[i] = value;
+    Buffer[i + q] = value === 0 ? 127 : 128 - value;
+    Buffer[i + q * 2] = -value;
+    Buffer[i + q * 3] = -128 + value;
+    value += step;
   }
   return Buffer;
 }

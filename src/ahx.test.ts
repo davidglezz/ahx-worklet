@@ -83,8 +83,8 @@ describe('test AHX', () => {
     });
 
     it('should generate the same Triangles', () => {
-      const expected = referenceWaves.FilterSets[31].Triangle04;
-      const actual = actualWaves[31][Waveform.TRIANGLE][0];
+      const expected = new Int8Array(referenceWaves.FilterSets[31].Triangle10);
+      const actual = actualWaves[31][Waveform.TRIANGLE][2];
       expect(actual).toEqual(expected);
     });
 
