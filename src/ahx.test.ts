@@ -35,24 +35,39 @@ describe('test AHX', () => {
       binString.data = String.fromCharCode(...songBytes);
       const referenceSong = new ReferenceSong();
       referenceSong.InitSong(binString);
+      const expected = [...dump(ReferenceOutput(), referenceSong)];
+
+      const song = new AHXSong(toArrayBuffer(songBytes));
+      const actual = [...dump(new AHXOutput(), song)];
+
+      expect(actual).toHaveLength(expected.length);
+      expect(actual).toEqual(expected);
+
+      const hashedExpected = createHash('sha256').update(new Uint16Array(expected)).digest('hex');
+      const hashedActual = createHash('sha256').update(new Uint16Array(actual)).digest('hex');
+
+      expect(hashedActual).toBe(hashedExpected);
+      console.log(hashedExpected); // eslint-disable-line no-console
+    });
+
+    it.skip(`progressive compare`, ({ expect }) => {
+      const songBytes = readFileSync(`test-songs/${file}`);
+
+      const binString = new DataType();
+      binString.data = String.fromCharCode(...songBytes);
+      const referenceSong = new ReferenceSong();
+      referenceSong.InitSong(binString);
       const expected = dump(ReferenceOutput(), referenceSong);
 
       const song = new AHXSong(toArrayBuffer(songBytes));
       const actual = dump(new AHXOutput(), song);
 
-      const hashedExpected = createHash('sha256').update(file);
-      const hashedActual = createHash('sha256').update(file);
       for (const actualChunk of actual) {
         const expectedChunk = expected.next().value;
-        //expect(actualChunk).toHaveLength(expectedChunk.length);
-        //expect(actualChunk).toEqual(expectedChunk);
-        hashedExpected.update(new Uint16Array(expectedChunk));
-        hashedActual.update(new Uint16Array(actualChunk));
+        expect(actualChunk).toHaveLength(expectedChunk.length);
+        expect(actualChunk).toEqual(expectedChunk);
       }
       expect(actual.next()).toEqual({ value: undefined, done: true });
-      const sha256 = hashedExpected.digest('hex');
-      expect(hashedActual.digest('hex')).toBe(sha256);
-      console.log(sha256); // eslint-disable-line no-console
     });
 
     it(`should have the same hash`, ({ expect }) => {

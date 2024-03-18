@@ -60,6 +60,8 @@
     adjusting accordingly. In ProcessStep.
   * introaac.ahx caused a unique error with track positions. I added a workaround in PlayIRQ()
 */
+const ARRTYPE = Int8Array; // or Array;
+
 var toSixtyTwo = function(a){ if(a < 0) {a = 0;} else if (a > 62) { a = 62; } return a;} 
 
 function AHXMaster() {
@@ -539,30 +541,30 @@ export function AHXWaves() {
 			var dstLow = {};
 			var dstHigh = {};
 			var fre = freq * 1.25 / 100.0;
-			dstLow.Sawtooth04 = new Int8Array(this.Filter(src.Sawtooth04, fre, 0));
-			dstLow.Sawtooth08 = new Int8Array(this.Filter(src.Sawtooth08, fre, 0));
-			dstLow.Sawtooth10 = new Int8Array(this.Filter(src.Sawtooth10, fre, 0));
-			dstLow.Sawtooth20 = new Int8Array(this.Filter(src.Sawtooth20, fre, 0));
-			dstLow.Sawtooth40 = new Int8Array(this.Filter(src.Sawtooth40, fre, 0));
-			dstLow.Sawtooth80 = new Int8Array(this.Filter(src.Sawtooth80, fre, 0));
-			dstLow.Triangle04 = new Int8Array(this.Filter(src.Triangle04, fre, 0));
-			dstLow.Triangle08 = new Int8Array(this.Filter(src.Triangle08, fre, 0));
-			dstLow.Triangle10 = new Int8Array(this.Filter(src.Triangle10, fre, 0));
-			dstLow.Triangle20 = new Int8Array(this.Filter(src.Triangle20, fre, 0));
-			dstLow.Triangle40 = new Int8Array(this.Filter(src.Triangle40, fre, 0));
-			dstLow.Triangle80 = new Int8Array(this.Filter(src.Triangle80, fre, 0));
-			dstHigh.Sawtooth04 = new Int8Array(this.Filter(src.Sawtooth04, fre, 1));
-			dstHigh.Sawtooth08 = new Int8Array(this.Filter(src.Sawtooth08, fre, 1));
-			dstHigh.Sawtooth10 = new Int8Array(this.Filter(src.Sawtooth10, fre, 1));
-			dstHigh.Sawtooth20 = new Int8Array(this.Filter(src.Sawtooth20, fre, 1));
-			dstHigh.Sawtooth40 = new Int8Array(this.Filter(src.Sawtooth40, fre, 1));
-			dstHigh.Sawtooth80 = new Int8Array(this.Filter(src.Sawtooth80, fre, 1));
-			dstHigh.Triangle04 = new Int8Array(this.Filter(src.Triangle04, fre, 1));
-			dstHigh.Triangle08 = new Int8Array(this.Filter(src.Triangle08, fre, 1));
-			dstHigh.Triangle10 = new Int8Array(this.Filter(src.Triangle10, fre, 1));
-			dstHigh.Triangle20 = new Int8Array(this.Filter(src.Triangle20, fre, 1));
-			dstHigh.Triangle40 = new Int8Array(this.Filter(src.Triangle40, fre, 1));
-			dstHigh.Triangle80 = new Int8Array(this.Filter(src.Triangle80, fre, 1));
+			dstLow.Sawtooth04 = ARRTYPE.from(this.Filter(src.Sawtooth04, fre, 0));
+			dstLow.Sawtooth08 = ARRTYPE.from(this.Filter(src.Sawtooth08, fre, 0));
+			dstLow.Sawtooth10 = ARRTYPE.from(this.Filter(src.Sawtooth10, fre, 0));
+			dstLow.Sawtooth20 = ARRTYPE.from(this.Filter(src.Sawtooth20, fre, 0));
+			dstLow.Sawtooth40 = ARRTYPE.from(this.Filter(src.Sawtooth40, fre, 0));
+			dstLow.Sawtooth80 = ARRTYPE.from(this.Filter(src.Sawtooth80, fre, 0));
+			dstLow.Triangle04 = ARRTYPE.from(this.Filter(src.Triangle04, fre, 0));
+			dstLow.Triangle08 = ARRTYPE.from(this.Filter(src.Triangle08, fre, 0));
+			dstLow.Triangle10 = ARRTYPE.from(this.Filter(src.Triangle10, fre, 0));
+			dstLow.Triangle20 = ARRTYPE.from(this.Filter(src.Triangle20, fre, 0));
+			dstLow.Triangle40 = ARRTYPE.from(this.Filter(src.Triangle40, fre, 0));
+			dstLow.Triangle80 = ARRTYPE.from(this.Filter(src.Triangle80, fre, 0));
+			dstHigh.Sawtooth04 = ARRTYPE.from(this.Filter(src.Sawtooth04, fre, 1));
+			dstHigh.Sawtooth08 = ARRTYPE.from(this.Filter(src.Sawtooth08, fre, 1));
+			dstHigh.Sawtooth10 = ARRTYPE.from(this.Filter(src.Sawtooth10, fre, 1));
+			dstHigh.Sawtooth20 = ARRTYPE.from(this.Filter(src.Sawtooth20, fre, 1));
+			dstHigh.Sawtooth40 = ARRTYPE.from(this.Filter(src.Sawtooth40, fre, 1));
+			dstHigh.Sawtooth80 = ARRTYPE.from(this.Filter(src.Sawtooth80, fre, 1));
+			dstHigh.Triangle04 = ARRTYPE.from(this.Filter(src.Triangle04, fre, 1));
+			dstHigh.Triangle08 = ARRTYPE.from(this.Filter(src.Triangle08, fre, 1));
+			dstHigh.Triangle10 = ARRTYPE.from(this.Filter(src.Triangle10, fre, 1));
+			dstHigh.Triangle20 = ARRTYPE.from(this.Filter(src.Triangle20, fre, 1));
+			dstHigh.Triangle40 = ARRTYPE.from(this.Filter(src.Triangle40, fre, 1));
+			dstHigh.Triangle80 = ARRTYPE.from(this.Filter(src.Triangle80, fre, 1));
 			dstLow.Squares = [];
 			dstHigh.Squares = [];
 			// squares alle einzeln filtern
@@ -570,10 +572,10 @@ export function AHXWaves() {
 				dstLow.Squares = dstLow.Squares.concat(this.Filter(src.Squares.slice(i*0x80, (i+1)*0x80), fre, 0));
 				dstHigh.Squares = dstHigh.Squares.concat(this.Filter(src.Squares.slice(i*0x80, (i+1)*0x80), fre, 1));
 			}
-			dstLow.Squares = new Int8Array(dstLow.Squares);
-			dstHigh.Squares = new Int8Array(dstHigh.Squares);
-			dstLow.WhiteNoiseBig = new Int8Array(this.Filter(src.WhiteNoiseBig, fre, 0));
-			dstHigh.WhiteNoiseBig = new Int8Array(this.Filter(src.WhiteNoiseBig, fre, 1));
+			dstLow.Squares = ARRTYPE.from(dstLow.Squares);
+			dstHigh.Squares = ARRTYPE.from(dstHigh.Squares);
+			dstLow.WhiteNoiseBig = ARRTYPE.from(this.Filter(src.WhiteNoiseBig, fre, 0));
+			dstHigh.WhiteNoiseBig = ARRTYPE.from(this.Filter(src.WhiteNoiseBig, fre, 1));
 			
 			this.FilterSets[temp] = dstLow;
 			this.FilterSets[temp+32] = dstHigh;
@@ -585,20 +587,20 @@ export function AHXWaves() {
 
 	this.FilterSets = new Array(31+1+31);
 	this.FilterSets[31] = {};
-	this.FilterSets[31].Sawtooth04 = new Int8Array(this.GenerateSawtooth(0x04));
-	this.FilterSets[31].Sawtooth08 = new Int8Array(this.GenerateSawtooth(0x08));
-	this.FilterSets[31].Sawtooth10 = new Int8Array(this.GenerateSawtooth(0x10));
-	this.FilterSets[31].Sawtooth20 = new Int8Array(this.GenerateSawtooth(0x20));
-	this.FilterSets[31].Sawtooth40 = new Int8Array(this.GenerateSawtooth(0x40));
-	this.FilterSets[31].Sawtooth80 = new Int8Array(this.GenerateSawtooth(0x80));
-	this.FilterSets[31].Triangle04 = new Int8Array(this.GenerateTriangle(0x04));
-	this.FilterSets[31].Triangle08 = new Int8Array(this.GenerateTriangle(0x08));
-	this.FilterSets[31].Triangle10 = new Int8Array(this.GenerateTriangle(0x10));
-	this.FilterSets[31].Triangle20 = new Int8Array(this.GenerateTriangle(0x20));
-	this.FilterSets[31].Triangle40 = new Int8Array(this.GenerateTriangle(0x40));
-	this.FilterSets[31].Triangle80 = new Int8Array(this.GenerateTriangle(0x80));
-	this.FilterSets[31].Squares = new Int8Array(this.GenerateSquare());
-	this.FilterSets[31].WhiteNoiseBig = new Int8Array(this.GenerateWhiteNoise(0x280*3));
+	this.FilterSets[31].Sawtooth04 = ARRTYPE.from(this.GenerateSawtooth(0x04));
+	this.FilterSets[31].Sawtooth08 = ARRTYPE.from(this.GenerateSawtooth(0x08));
+	this.FilterSets[31].Sawtooth10 = ARRTYPE.from(this.GenerateSawtooth(0x10));
+	this.FilterSets[31].Sawtooth20 = ARRTYPE.from(this.GenerateSawtooth(0x20));
+	this.FilterSets[31].Sawtooth40 = ARRTYPE.from(this.GenerateSawtooth(0x40));
+	this.FilterSets[31].Sawtooth80 = ARRTYPE.from(this.GenerateSawtooth(0x80));
+	this.FilterSets[31].Triangle04 = ARRTYPE.from(this.GenerateTriangle(0x04));
+	this.FilterSets[31].Triangle08 = ARRTYPE.from(this.GenerateTriangle(0x08));
+	this.FilterSets[31].Triangle10 = ARRTYPE.from(this.GenerateTriangle(0x10));
+	this.FilterSets[31].Triangle20 = ARRTYPE.from(this.GenerateTriangle(0x20));
+	this.FilterSets[31].Triangle40 = ARRTYPE.from(this.GenerateTriangle(0x40));
+	this.FilterSets[31].Triangle80 = ARRTYPE.from(this.GenerateTriangle(0x80));
+	this.FilterSets[31].Squares = ARRTYPE.from(this.GenerateSquare());
+	this.FilterSets[31].WhiteNoiseBig = ARRTYPE.from(this.GenerateWhiteNoise(0x280*3));
 	this.GenerateFilterWaveforms();
 
 	return this;
