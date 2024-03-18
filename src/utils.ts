@@ -12,7 +12,7 @@ export function* dump(output: any, song: any) {
   }
   while (!output.Player.SongEndReached) {
     output.MixBuffer();
-    yield output.MixingBuffer;
+    yield output.MixingBuffer.slice(0, output.BufferSize);
   }
 }
 

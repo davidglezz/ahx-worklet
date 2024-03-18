@@ -1179,41 +1179,29 @@ export class AHXOutput {
     this.MixingBuffer = Array.from({ length: this.BufferSize });
   }
 
-  MixChunk(NrSamples: number, mb: number) {
-    const period2Freq = 3579545.25;
+  MixBuffer() {
+    // Output: 1 amiga(50hz)-frame of audio data
+    this.BufferSize = Math.floor(this.Frequency / 50 / this.Player.Song.SpeedMultiplier);
+    this.MixingBuffer.fill(0, 0, this.BufferSize);
+    const period2Freq2delta = (3579545.25 * (1 << 16)) / this.Frequency;
+    const maxPos = 0x280 << 16;
+    this.Player.PlayIRQ();
     for (let v = 0; v < 4; v++) {
       const { VoiceBuffer, VoiceVolume, VoicePeriod } = this.Player.Voices[v];
       if (VoiceVolume === 0) continue;
-      const freq = period2Freq / VoicePeriod;
-      const delta = Math.floor((freq * (1 << 16)) / this.Frequency);
-      let samplesToMix = NrSamples;
+      const delta = Math.floor(period2Freq2delta / VoicePeriod);
+      let samplesToMix = this.BufferSize;
       let mixpos = 0;
       while (samplesToMix) {
-        if (this.pos[v] >= 0x280 << 16) this.pos[v] -= 0x280 << 16;
-        const thiscount = Math.min(
-          samplesToMix,
-          Math.floor(((0x280 << 16) - this.pos[v] - 1) / delta) + 1,
-        );
+        if (this.pos[v] >= maxPos) this.pos[v] -= maxPos;
+        const remaining = Math.floor((maxPos - this.pos[v] - 1) / delta) + 1;
+        const thiscount = Math.min(samplesToMix, remaining);
         samplesToMix -= thiscount;
         for (let i = 0; i < thiscount; i++) {
-          this.MixingBuffer[mb + mixpos++] += (VoiceBuffer[this.pos[v] >> 16] * VoiceVolume) >> 6;
+          this.MixingBuffer[mixpos++] += (VoiceBuffer[this.pos[v] >> 16] * VoiceVolume) >> 6;
           this.pos[v] += delta;
         }
       }
-    }
-    mb += NrSamples;
-    return mb;
-  }
-
-  MixBuffer() {
-    // Output: 1 amiga(50hz)-frame of audio data
-    this.MixingBuffer.fill(0);
-
-    let mb = 0;
-    const NrSamples = Math.floor(this.BufferSize / this.Player.Song.SpeedMultiplier);
-    for (let f = 0; f < this.Player.Song.SpeedMultiplier; f++) {
-      this.Player.PlayIRQ();
-      mb = this.MixChunk(NrSamples, mb);
     }
   }
 }
