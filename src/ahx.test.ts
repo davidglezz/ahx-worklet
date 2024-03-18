@@ -12,33 +12,30 @@ import { dump, toArrayBuffer } from './utils.ts';
 
 describe('test AHX', () => {
   describe.concurrent.each([
-    ['03.ahx', '1b6e2e76a017ba1d50193e8746a00b5853e02baa56cc67ec1a02b3e35f0e9a95'],
-    ['04.ahx', '1692a0cb59bc98ab2ac9354539e2d38e2992c38ad97dad31aeac35276be04370'],
-    [
-      'die audienz ist horenz.ahx',
-      'b34e74704e344c064a560b513a412f106b358c90248622635d512a9cf5d92271',
-    ],
-    ['drums.ahx', '7eefdffe557757cd793df9e8b75d973138ef5f600a702aa412f4bab81c654156'],
-    ['frame.ahx', '75b10dd78464f6a754ff13c84214b5b0407569da462559bd9ca4b71a1c5959dd'],
-    //['holla 2.ahx'],// hangs
-    ['loom.ahx', '73a8a2480259604d826968aa67b62dd630226c7d7ac62c7f2cabbea8ecca1118'],
-    ['thxcolly-intro.ahx', '1173840ace165a5b52b03f1df3091ace73f8aea3b0848424c822920ea98e7e8f'],
-    ['void.ahx', 'aff41a17588cfa099c98f25be27d19ef6ead1eadc3742431b3811d4dde5b7211'],
-    ['100th.ahx', '80c4b95a0bf36fe5f45aae4a31b43b9fe735aaba1f687bd182df9d3ce3c945fa'],
-    ['choochoo.ahx', '695a49a80c8795d7063e74d997e848f81b93b4b5de0a43cac612117a5a35771b'],
-    ['shamrock.ahx', '121dcb52c7c88fa924ff9ba13a777f8e87479a213178ad68c51986e197cc60b5'],
+    ['03', 'ec1a9656abfd3c63816a4498bc25974804995480916f19828a350b6375ea669b'],
+    ['04', '7f85de43ae56372c73365d1db21bea41870a3bb769ca39533bd84b700cdbbc93'],
+    ['die audienz ist horenz', 'f879c46cdc1989d0cf60278d7b38a0b2fc34cdf91848952708915c68a13a4385'],
+    ['drums', '418c0160b5463cc44d1829713a44405768cca271f397d5f97f95621a48f0e21f'],
+    ['frame', '6d278655b96751026a9c2c6b59002a2854d3878a4af6860b0da68e2c5151880c'],
+    //['holla 2'],// hangs
+    ['loom', '540b1159e05c81cd84bd56f7c0656b32c57dea998b57968c25ce14259694b0b3'],
+    ['thxcolly-intro', '5ab97f815c72007b2eb940bbff28bb9c7a9b3d67b4639677057a043407317f34'],
+    ['void', 'a3191a324369a0e39b2321eb0800c6eef7fcb0ed4ffaa826004493433534e8de'],
+    ['100th', 'bdddc915e3dba2ed1e1daa3c3e65762d1432a8f0f6e8bdaf9f244d441188bf7d'],
+    ['choochoo', '7b2810faa33367a248c537116c9c1a94ff31f9a34b7b793b03f746ec6a468564'],
+    ['shamrock', '1b22ffb4057ef478bcd625cf492b8ebb9f7992699a1a73d2f0bacca40c5c6f71'],
   ])('%s', (file, sha256) => {
     it.skip(`genrerate and compare hash`, ({ expect }) => {
-      const songBytes = readFileSync(`test-songs/${file}`);
+      const songBytes = readFileSync(`test-songs/${file}.ahx`);
 
       const binString = new DataType();
       binString.data = String.fromCharCode(...songBytes);
       const referenceSong = new ReferenceSong();
       referenceSong.InitSong(binString);
-      const expected = [...dump(ReferenceOutput(), referenceSong)];
+      const expected = [...dump(ReferenceOutput(), referenceSong)].flat();
 
       const song = new AHXSong(toArrayBuffer(songBytes));
-      const actual = [...dump(new AHXOutput(), song)];
+      const actual = [...dump(new AHXOutput(), song)].flat();
 
       expect(actual).toHaveLength(expected.length);
       expect(actual).toEqual(expected);
@@ -51,7 +48,7 @@ describe('test AHX', () => {
     });
 
     it.skip(`progressive compare`, ({ expect }) => {
-      const songBytes = readFileSync(`test-songs/${file}`);
+      const songBytes = readFileSync(`test-songs/${file}.ahx`);
 
       const binString = new DataType();
       binString.data = String.fromCharCode(...songBytes);
@@ -62,8 +59,11 @@ describe('test AHX', () => {
       const song = new AHXSong(toArrayBuffer(songBytes));
       const actual = dump(new AHXOutput(), song);
 
-      for (const actualChunk of actual) {
-        const expectedChunk = expected.next().value;
+      for (const expectedChunk of expected) {
+        let actualChunk = actual.next().value;
+        if (song.SpeedMultiplier > 1) actualChunk = actualChunk.concat(actual.next().value);
+        if (song.SpeedMultiplier > 2) actualChunk = actualChunk.concat(actual.next().value);
+        if (song.SpeedMultiplier > 3) actualChunk = actualChunk.concat(actual.next().value);
         expect(actualChunk).toHaveLength(expectedChunk.length);
         expect(actualChunk).toEqual(expectedChunk);
       }
@@ -71,10 +71,10 @@ describe('test AHX', () => {
     });
 
     it(`should have the same hash`, ({ expect }) => {
-      const songBytes = readFileSync(`test-songs/${file}`);
+      const songBytes = readFileSync(`test-songs/${file}.ahx`);
       const song = new AHXSong(toArrayBuffer(songBytes));
       const actual = dump(new AHXOutput(), song);
-      const hashedActual = createHash('sha256').update(file);
+      const hashedActual = createHash('sha256');
       for (const actualChunk of actual) {
         hashedActual.update(new Uint16Array(actualChunk));
       }
