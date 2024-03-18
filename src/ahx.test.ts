@@ -80,26 +80,26 @@ describe('test AHX', () => {
 
     describe.each(filterSets)('filterSet %i', (i: number) => {
       it.each(filterLengthsKeys)('triangle%s', length => {
-        const expected = new Int8Array(referenceWaves.FilterSets[i][`Triangle${length}`]);
-        const actual = new Int8Array(actualWaves[i][Waveform.TRIANGLE][filterLengths[length]]);
+        const expected = referenceWaves.FilterSets[i][`Triangle${length}`];
+        const actual = actualWaves[i][Waveform.TRIANGLE][filterLengths[length]];
         expect(actual).toEqual(expected);
       });
 
       it.each(filterLengthsKeys)('sawtooth%s', length => {
-        const expected = new Int8Array(referenceWaves.FilterSets[i][`Sawtooth${length}`]);
-        const actual = new Int8Array(actualWaves[i][Waveform.SAWTOOTH][filterLengths[length]]);
+        const expected = referenceWaves.FilterSets[i][`Sawtooth${length}`];
+        const actual = actualWaves[i][Waveform.SAWTOOTH][filterLengths[length]];
         expect(actual).toEqual(expected);
       });
 
       it('square', () => {
-        const expected = new Int8Array(referenceWaves.FilterSets[i].Squares);
-        const actual = new Int8Array(actualWaves[i][Waveform.SQUARE]);
+        const expected = referenceWaves.FilterSets[i].Squares;
+        const actual = actualWaves[i][Waveform.SQUARE];
         expect(actual).toEqual(expected);
       });
 
       it('noise', () => {
-        const expected = new Int8Array(referenceWaves.FilterSets[i].WhiteNoiseBig);
-        const actual = new Int8Array(actualWaves[i][Waveform.WNOISE]);
+        const expected = referenceWaves.FilterSets[i].WhiteNoiseBig;
+        const actual = actualWaves[i][Waveform.WNOISE];
         expect(actual).toEqual(expected);
       });
     });

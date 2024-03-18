@@ -47,23 +47,23 @@ export const enum Waveform {
 export type AHXWaves = [
   empty: undefined,
   Triangle: [
-    len04: number[],
-    len08: number[],
-    len10: number[],
-    len20: number[],
-    len40: number[],
-    len80: number[],
+    len04: Int8Array,
+    len08: Int8Array,
+    len10: Int8Array,
+    len20: Int8Array,
+    len40: Int8Array,
+    len80: Int8Array,
   ],
   Sawtooth: [
-    len04: number[],
-    len08: number[],
-    len10: number[],
-    len20: number[],
-    len40: number[],
-    len80: number[],
+    len04: Int8Array,
+    len08: Int8Array,
+    len10: Int8Array,
+    len20: Int8Array,
+    len40: Int8Array,
+    len80: Int8Array,
   ],
-  Squares: number[],
-  WhiteNoiseBig: number[],
+  Squares: Int8Array,
+  WhiteNoiseBig: Int8Array,
 ][];
 
 export interface AHXPosition {
@@ -402,7 +402,7 @@ export function buildAHXWaves() {
 }
 
 function GenerateTriangle(length: number) {
-  const Buffer = Array.from({ length });
+  const Buffer = Int8Array.from({ length });
   const q = length >> 2;
   const step = 128 / q;
   let value = 0;
@@ -427,13 +427,13 @@ function GenerateSquare() {
   return Buffer;
 }
 
-function GenerateSawtooth(Len: number) {
-  const Buffer = Array.from({ length: Len });
-  const ebx = Math.floor(256 / (Len - 1));
-  let eax = -128;
-  for (let ecx = 0; ecx < Len; ecx++) {
-    Buffer[ecx] = eax;
-    eax += ebx;
+function GenerateSawtooth(length: number) {
+  const Buffer = Int8Array.from({ length });
+  const step = Math.floor(256 / (length - 1));
+  let value = -128;
+  for (let i = 0; i < length; i++) {
+    Buffer[i] = value;
+    value += step;
   }
   return Buffer;
 }
@@ -446,12 +446,12 @@ function GenerateWhiteNoise(Len: number) {
   return noise.slice(0, Len);
 }
 
-function Filter(input: number[], fre: number): [low: number[], high: number[]] {
+function Filter(input: Int8Array, fre: number): [low: Int8Array, high: Int8Array] {
   let high;
   let mid = 0.0;
   let low = 0.0;
-  const outputLow = Array.from<number>({ length: input.length });
-  const outputHigh = Array.from<number>({ length: input.length });
+  const outputLow = Int8Array.from({ length: input.length });
+  const outputHigh = Int8Array.from({ length: input.length });
   for (let i = 0; i < input.length; i++) {
     high = clamp(input[i] - mid - low, -128.0, 127.0);
     mid = clamp(mid + high * fre, -128.0, 127.0);
@@ -467,14 +467,17 @@ function Filter(input: number[], fre: number): [low: number[], high: number[]] {
   return [outputLow, outputHigh];
 }
 
+const flat = (arrs: Int8Array[]) =>
+  Int8Array.from(arrs.reduce((a, b) => [...a, ...b], new Int8Array()));
+
 function GenerateFilterWaveforms(filterSets: AHXWaves) {
   const src = filterSets[31];
   let freq = 8;
   for (let set = 0; set < 31; set++) {
     const fre = (freq * 1.25) / 100.0;
     // Filter all squares individually
-    const dstLowSquares = Array.from<number[]>({ length: 0x20 });
-    const dstHighSquares = Array.from<number[]>({ length: 0x20 });
+    const dstLowSquares = Array.from<Int8Array>({ length: 0x20 });
+    const dstHighSquares = Array.from<Int8Array>({ length: 0x20 });
     for (let i = 0; i < 0x20; i++) {
       const square = src[Waveform.SQUARE].slice(i * 0x80, (i + 1) * 0x80);
       [dstLowSquares[i], dstHighSquares[i]] = Filter(square, fre);
@@ -498,14 +501,14 @@ function GenerateFilterWaveforms(filterSets: AHXWaves) {
       undefined,
       [lowTri04, lowTri08, lowTri10, lowTri20, lowTri40, lowTri80],
       [lowSaw04, lowSaw08, lowSaw10, lowSaw20, lowSaw40, lowSaw80],
-      dstLowSquares.flat(),
+      flat(dstLowSquares),
       lowWhiteNoiseBig,
     ];
     filterSets[set + 32] = [
       undefined,
       [highTri04, highTri08, highTri10, highTri20, highTri40, highTri80],
       [highSaw04, highSaw08, highSaw10, highSaw20, highSaw40, highSaw80],
-      dstHighSquares.flat(),
+      flat(dstHighSquares),
       highWhiteNoiseBig,
     ];
 
