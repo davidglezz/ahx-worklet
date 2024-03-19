@@ -437,7 +437,7 @@ const b256Noise =
 const noise = new Int8Array(b256Noise.split('').map(c => c.charCodeAt(0) - 192));
 
 function GenerateWhiteNoise(length: number) {
-  return new Int8Array(noise.buffer, 0, length);
+  return noise.subarray(0, length);
 }
 
 function Filter(input: Int8Array, fre: number): [low: Int8Array, high: Int8Array] {
@@ -470,7 +470,7 @@ function GenerateFilterWaveforms(filterSets: AHXWaves) {
     const dstLowSquares = Int8Array.from({ length: 4096 });
     const dstHighSquares = Int8Array.from({ length: 4096 });
     for (let i = 0; i < 4096; i += 128) {
-      const square = new Int8Array(src[Waveform.SQUARE].buffer, i, 128);
+      const square = src[Waveform.SQUARE].subarray(i, i + 128);
       const [low, high] = Filter(square, fre);
       dstLowSquares.set(low, i);
       dstHighSquares.set(high, i);
@@ -1008,23 +1008,20 @@ export class AHXPlayer {
     if (voice.Waveform === Waveform.WNOISE) {
       voice.NewWaveform = true;
     }
-    if (voice.NewWaveform) {
-      if (voice.Waveform !== Waveform.SQUARE) {
-        // don't process square
-        const FilterSet = clamp(voice.FilterPos - 1, 0, 62);
+    if (voice.NewWaveform && voice.Waveform !== Waveform.SQUARE) {
+      // don't process square
+      const FilterSet = clamp(voice.FilterPos - 1, 0, 62);
 
-        if (voice.Waveform === Waveform.WNOISE) {
-          // white noise
-          const WNStart = this.WNRandom & (2 * 0x280 - 1) & ~1;
-          const wnoise = this.Waves[FilterSet][voice.Waveform];
-          voice.AudioSource = new Int8Array(wnoise.buffer, WNStart, 0x280);
-          //AddRandomMoving
-          this.WNRandom += 2239384;
-          this.WNRandom = ((((this.WNRandom >> 8) | (this.WNRandom << 24)) + 782323) ^ 75) - 6735;
-        } else {
-          // triangle / sawtooth
-          voice.AudioSource = this.Waves[FilterSet][voice.Waveform][voice.WaveLength];
-        }
+      if (voice.Waveform === Waveform.WNOISE) {
+        // white noise
+        const pos = this.WNRandom & (2 * 0x280 - 1) & ~1;
+        voice.AudioSource = this.Waves[FilterSet][voice.Waveform].subarray(pos, pos + 0x280);
+        //AddRandomMoving
+        this.WNRandom += 2239384;
+        this.WNRandom = ((((this.WNRandom >> 8) | (this.WNRandom << 24)) + 782323) ^ 75) - 6735;
+      } else {
+        // triangle / sawtooth
+        voice.AudioSource = this.Waves[FilterSet][voice.Waveform][voice.WaveLength];
       }
     }
     //StillHoldWaveform
@@ -1069,7 +1066,7 @@ export class AHXPlayer {
         if (!voice.AudioSource.length) {
           voice.VoiceBuffer.fill(0, 0, Samples);
         } else {
-          const Loop = new Int8Array(voice.AudioSource.buffer, 0, LoopLen);
+          const Loop = voice.AudioSource.subarray(0, LoopLen);
           for (let pos = 0; pos < Samples; pos += LoopLen) {
             voice.VoiceBuffer.set(Loop, pos);
           }
@@ -1135,7 +1132,7 @@ export class AHXPlayer {
           }
         } else voice.NoteMaxVolume = FXParam;
         break;
-      case 7: // set speed
+      case 7: // Set speed
         voice.PerfSpeed = voice.PerfWait = FXParam;
         break;
     }
