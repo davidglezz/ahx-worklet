@@ -412,11 +412,11 @@ function GenerateTriangle(length: number) {
 
 function GenerateSquare() {
   const Buffer = Int8Array.from({ length: 4096 });
-  for (let ebx = 0; ebx < 0x40; ebx += 2) {
-    const start1 = ebx * 0x40;
-    const start2 = start1 + 0x7e - ebx;
+  for (let i = 0; i < 0x40; i += 2) {
+    const start1 = i * 0x40;
+    const start2 = start1 + 0x7e - i;
     Buffer.fill(-0x80, start1, start2);
-    Buffer.fill(0x7f, start2, start2 + ebx + 2);
+    Buffer.fill(0x7f, start2, start2 + i + 2);
   }
   return Buffer;
 }
@@ -830,12 +830,10 @@ export class AHXPlayer {
         NextInstrument = this.Song.Tracks[voice.Track][this.NoteNr + 1].Instrument;
       else NextInstrument = this.Song.Tracks[voice.NextTrack][0].Instrument;
       if (NextInstrument) {
-        let d1 = this.Tempo - voice.HardCut;
-        if (d1 < 0) d1 = 0;
         if (!voice.NoteCutOn) {
           voice.NoteCutOn = 1;
-          voice.NoteCutWait = d1;
-          voice.HardCutReleaseF = -(d1 - this.Tempo);
+          voice.NoteCutWait = this.Tempo > voice.HardCut ? this.Tempo - voice.HardCut : 0;
+          voice.HardCutReleaseF = -(voice.NoteCutWait - this.Tempo);
         } else voice.HardCut = 0;
       }
     }
@@ -870,14 +868,12 @@ export class AHXPlayer {
     //Portamento
     if (voice.PeriodSlideOn) {
       if (voice.PeriodSlideWithLimit) {
-        let d0 = voice.PeriodSlidePeriod - voice.PeriodSlideLimit;
-        let d2 = voice.PeriodSlideSpeed;
-        if (d0 > 0) d2 = -d2;
-        if (d0) {
-          const d3 = (d0 + d2) ^ d0;
-          if (d3 >= 0) d0 = voice.PeriodSlidePeriod + d2;
-          else d0 = voice.PeriodSlideLimit;
-          voice.PeriodSlidePeriod = d0;
+        const remaining = voice.PeriodSlidePeriod - voice.PeriodSlideLimit;
+        if (remaining) {
+          const speed = remaining > 0 ? -voice.PeriodSlideSpeed : voice.PeriodSlideSpeed;
+          if (((remaining + speed) ^ remaining) >= 0)
+            voice.PeriodSlidePeriod = voice.PeriodSlidePeriod + speed;
+          else voice.PeriodSlidePeriod = voice.PeriodSlideLimit;
           voice.PlantPeriod = 1;
         }
       } else {
@@ -953,15 +949,12 @@ export class AHXPlayer {
       }
     }
     if (voice.FilterOn && --voice.FilterWait <= 0) {
-      const d1 = voice.FilterLowerLimit;
-      const d2 = voice.FilterUpperLimit;
-      let d3 = voice.FilterPos;
       if (voice.FilterInit) {
         voice.FilterInit = 0;
-        if (d3 <= d1) {
+        if (voice.FilterPos <= voice.FilterLowerLimit) {
           voice.FilterSlidingIn = 1;
           voice.FilterSign = 1;
-        } else if (d3 >= d2) {
+        } else if (voice.FilterPos >= voice.FilterUpperLimit) {
           voice.FilterSlidingIn = 1;
           voice.FilterSign = -1;
         }
@@ -969,16 +962,18 @@ export class AHXPlayer {
       //NoFilterInit
       const FMax = voice.FilterSpeed < 3 ? 5 - voice.FilterSpeed : 1;
       for (let i = 0; i < FMax; i++) {
-        if (d1 === d3 || d2 === d3) {
+        if (
+          voice.FilterLowerLimit === voice.FilterPos ||
+          voice.FilterUpperLimit === voice.FilterPos
+        ) {
           if (voice.FilterSlidingIn) {
             voice.FilterSlidingIn = 0;
           } else {
             voice.FilterSign = -voice.FilterSign;
           }
         }
-        d3 += voice.FilterSign;
+        voice.FilterPos += voice.FilterSign;
       }
-      voice.FilterPos = d3;
       voice.NewWaveform = true;
       voice.FilterWait = voice.FilterSpeed - 3;
       if (voice.FilterWait < 1) voice.FilterWait = 1;
@@ -995,7 +990,7 @@ export class AHXPlayer {
       //OkDownSquare
       if (X--) SquareOfs = X * 0x80; // <- WTF!?
       const Delta = 32 >> voice.WaveLength;
-      const AudioLen = (1 << voice.WaveLength) * 4;
+      const AudioLen = 4 << voice.WaveLength;
       voice.AudioSource = Int8Array.from({ length: AudioLen });
       for (let i = 0; i < AudioLen; i++) {
         voice.AudioSource[i] = SquarePtr[SquareOfs];
@@ -1013,7 +1008,7 @@ export class AHXPlayer {
       const FilterSet = clamp(voice.FilterPos - 1, 0, 62);
 
       if (voice.Waveform === Waveform.WNOISE) {
-        // white noise
+        // white noise. pos: 0, 6, 1038, 1050, 162, (1050, 1050, 80,)*
         const pos = this.WNRandom & (2 * 0x280 - 1) & ~1;
         voice.AudioSource = this.Waves[FilterSet][voice.Waveform].subarray(pos, pos + 0x280);
         //AddRandomMoving
@@ -1078,7 +1073,7 @@ export class AHXPlayer {
 
   PListCommandParse(voice: AHXVoice, FX: number, FXParam: number) {
     switch (FX) {
-      case 0:
+      case 0: // null or set filter (data $00-$3F valid, only $00 valid in AHX0)
         if (this.Song.Revision > 0 && FXParam !== 0) {
           if (voice.IgnoreFilter) {
             voice.FilterPos = voice.IgnoreFilter;
@@ -1089,22 +1084,22 @@ export class AHXPlayer {
           voice.NewWaveform = true;
         }
         break;
-      case 1:
+      case 1: // Slide up (data $00-$FF valid)
         voice.PeriodPerfSlideSpeed = FXParam;
         voice.PeriodPerfSlideOn = 1;
         break;
-      case 2:
+      case 2: // Slide down (data $00-$FF valid)
         voice.PeriodPerfSlideSpeed = -FXParam;
         voice.PeriodPerfSlideOn = 1;
         break;
-      case 3: // Init Square Modulation
+      case 3: // Init Square Modulation (data $00-$3F valid)
         if (voice.IgnoreSquare) {
           voice.IgnoreSquare = 0;
         } else {
           voice.SquarePos = FXParam >> (5 - voice.WaveLength);
         }
         break;
-      case 4: // Start/Stop Modulation
+      case 4: // Start/Stop Modulation (data $00, $01, $0F, $10, $11, $1F, $F0, $F1, $FF valid. Only $00 valid in AHX0)
         if (this.Song.Revision === 0 || FXParam === 0) {
           voice.SquareInit = voice.SquareOn ^= 1;
           voice.SquareSign = 1;
@@ -1119,10 +1114,10 @@ export class AHXPlayer {
           }
         }
         break;
-      case 5: // Jump to Step [xx]
+      case 5: // Jump to Step [xx] - Position jump (data 0 to PLEN-1 valid)
         voice.PerfCurrent = FXParam;
         break;
-      case 6: // Set Volume
+      case 6: // Set volume aka 'C' (data $0-$40, $50-$90, $A0-$E0 valid)
         if (FXParam > 0x40) {
           FXParam -= 0x50;
           if (FXParam >= 0) {
@@ -1132,7 +1127,7 @@ export class AHXPlayer {
           }
         } else voice.NoteMaxVolume = FXParam;
         break;
-      case 7: // Set speed
+      case 7: // Set speed aka 'F' (param $00-$FF valid)
         voice.PerfSpeed = voice.PerfWait = FXParam;
         break;
     }
