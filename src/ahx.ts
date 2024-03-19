@@ -434,8 +434,8 @@ const b256Noise =
   'ĿĿŨƢĸþìŒĒƕŀŀūŀĿ÷ĿĿÕûżĦƳĿŀŀŀŀĂƥƸŀĿĿæĿŀŗŀğŧĿŀŀŀĿĿĿƎĹŌŀĊĿŀÖĿĿŀŀÉƱŀŕĸĸĿŸƢĒĿÈœĿĿŀƻŨĄƥƊÉĿŀĿŀƋŀĿƷŀŀŷĿěŀûÔƏŀĿŀÖßħšĢııŧĿĄāŀĿƍāăċƳŀƇƟƟƕçßßşöäĳıĿŀĿĹĂĿĿŀŀŀîâĿƲĆŀŀŴƒõîŀŏŵżŀøƲĿÐíĿĿæőĿưĿƟëĿŀþĿĿŀŀūŮĿƊŀŀƳźôŀŀĿĿŀþĦŀ×ŀūŀÉƳĿéŀƄĿŀƓĿźŀĿŀŝĿŀøŀĿĿĿĩĿĿÕďŀļŌÛĿĿŀŀİëŀĿĚƁĿŀĿąŻŀĿƷƎŀŀŀƚŝĿŀĿźƢÂŀŕźŀƺƾŀŴŀŀňĿĿÒŀŀÎśŀŀďƉëŀķŵĿđĿĿĿĿŀĿƱŀñƦŀĿŀťŀĿƊĿåŀŒŴĿŀŗĿĿŔàÛûĿƮƊŀŀĂŀŀţŀƅƱŀĿĿĿđůĿõĂŀĿƱŀƅĿĿĿŀèĿųììƪĿĿŀĿáũĿôĿŮÞƅſŮĿŋ÷ĿÍŀĳãŻŀŀƆŀŶŀĿŀŀĿĿŀáĿàąŧƊĿŀŀŀýĿÕąƳƘŋśƎĕŀŀĿŽƎĿöŀĿſĢãÇåƱƊęĿŪĿĿćœŀÛáŀśƊŀíŀŘĿĿĿƮŀŀŀĿàûŀüâƏĿŀŀęŝĿêĿŀļŀƓáŀŧĿĿŀÉýĿĿŮŀŧŀĿĳÅýŀĿĿĿæûĿƶŀĿĞćƟŀļööĿƿżżżĿĿĿŀŀčáĿĿĿāčŀĿĿŀƀůìĿ×õŀŀĿưüÒŇĿŀŀÓĳíþŀĿŀŦƘÙŀĿçŀĿŀĿŀĿãŀčŀĿĿŉĿŀŵĊ×ůňŕŀİķŗĿŀŀâśÂïŀŀŘĿĿÒíèƎůŐĘƩÚıïĜĿŀĿĿŀĿćƍůìÆŀïŀƨŀîĘÑƗŭĘă×şİƃŀİÙƃ÷îĂŀìżŀĿĿĿÐąíþþŐŀŦƘěŀĿçŀĿŀóŀĵŀĿĿŔŀáƱĿƮĿŮƶŮŀāŀťĿĀĿŊýÒƝĿŞĿŒöĦÙŀŀŧŠŐŀğãėŀñŀíöŠƒŏƙÿŀþŀéƘŭĿĿđŻİƋŵƜýƂŷĿźŀþŀĿûĄŀŦĿŀŀļŀġĿƊĿĿŀƿôĿĆÅĿäĿĿĿĿżĿĿĿŀĿÕĿƎƥĿŀĿŽĘŅóĿľŀŀŀĿĿŀĿƷòŔĀĳĿĿƮƜĿäĿĿźƆçáŕŀýŤŀĿĿŀĿĿŔĿĿŔŀġĿŀĿĿĹŀĂĿžŀŀƂăƷŬŬŀĿĿĿŀÔĿÕĿƂÝĿŀĿŻŀŀŀŀŶĿĿĄĿÉÇŀĿŀĿĿŖĿƎŀŀġĥŀíĊĿĿŀĿĆŀĿŪĄŀƋŉĿŀĿŀĿŎşŀƃăıřŀĿćāůŀûŶĿĲŀƑŀĿĄŀïĿĿĂŀĿưĿąĿŀĿŀƀůĿŜÞõĿƊĥƱüŒŴŠŀĿĿÏƗĳŀÎŀĿŀļƊƇŭŀŀýŞưłōƙÙĿœĿŀŀŀŘŀŀĿûèƎÉĿĞƩŀŀĿąŀƺĿĿŀĿŀĿĿÑŀŴìŀÓĿŀŀƅĿĿƮłŀŀāŀÑĿŀƁĿŭĿĿĿŁƱŀñŠŀĿĿåėĿƄŀíöĿŽŀƙĿŻĿŀïĿöŀþĘŀŀāğŀâŀŀƌĿĿäƅéƦƄĿŀƑŀúÌšŀŷĿžŀÔŕŀƳĿŉŀƁĿŀĿĿŨÞƃăáŀŀĿćƍĻŀûŀĿåŀƑçŉĿŀèŤŐĿęĿäĿűĜĿſĿĿŀÖŀƛŀĿŀĿĿƵŲĿĿŀĿÏŀŀŀķŀîŀüŠĿëĿĨŀƀĿĿĿÐŵĿƊÑőŀŕĿĿĿĿŀŀƋŀĿŁĿŬŪĿĿŀœúƀŀŀŘĒŀĿơŨƜŅųĶĿźŀĿţŀŴŀƆáĿÏĿĿŀÉĿĿĿšƸĿţĿæŀƃŀāëĿĿŀƁĕĿĿĿůŀŀŀñŀĿĿſĒùĦĳƷĜƩŀĿĿĂĕŀŀŒĿĿŀŗĿÕŀãÛŻŚŀŀŀŶèžŀĿÏƫưŀğƉáīĿČŀĿŭƄƁĿŖĿĿůĿơŞŀĿųƶŀŀŀŀūưŀŀƺúĿŀŀŉĿÈĿŀĿŀƺĄŏÉĿŀĿŀŀâśĿŸŀĿĿŀĿÕíĿĿĿŕĘœĿưƢƜĿÕĿŀĿŁĿƲŔŀŀĿŀĿƎŀŀŀŀŀśŀÿŢŀŘÂĿàéŨĸĿĄĩÑĿƊāč×ĿĿŀŀİƷĿƼŀŀĿƎĿŀŀĊÝŀčĿŀĿƲŀƾŀŀƬĢĿĿƿŀƋŀĿŀƀĿŀĎáõÌůŲĿŀþưŖŬĿëƪŀŀŀŀŠĿĄĿĿĭƇĿäŀêĿŀüŀƬĿŀƨŀŤêþĖŀŀƓƛŵƀŀĿůÔõŀøĿŖĿĿĨĿĿāĿĄĿŀƇƇŀŀŀÔŀĿĿƜÝĿĿĿſŀĜŀķƷƀƁŀãęŀŀĿŭƜĿŊŉĿźĿĿŀũŀŀĿċőĿČĿĄůĿĿŀĿĿŸŀüĿûĿŀƨŀĿĺìĖŀĿŀƨĿĿ×ÿĿƘÅĳƟíŴŀĿŕŀŌĿĿƣŀÉåĿĿĿĿŪĿÕƃůźŀŀìưźĿĿĨĿĿĿ×ďŅŀŀİĿśĢíŀŀśŀŀŕŀŘĿƷĿöŀŀŀĿçŀĿƊçŀÎŀúŀŀñưĿŔŲĒĿŀŀňĝÅţÔőŀƌĿŀĿĿŀŀĿŀĿĿČĿƶĿĿŀŤĿĿŕĿäĿƷĢĿŀáĿĄĿăčƋŀĿŀƀŀĿĿÒõäċœŐŀŀƇëŀûÈĿĞĿđŀšŲŀĿŮŀĿĚċƷŀŀƂĿŀŀŒôŀŕŬŀŧĿĿÑûüĿŀĿŀƨĦĿĿ×ƗţúŀİŀŀĿĿŀŀŀĜíŀ×ĿĿŀøŀūĿÏŀĿŀŀƈƱŪĿĿŀĿĿŀďŧƄŀÂ÷ŀýŀĿĿŸĿŀïÔÓŀøŀĿưĿĨĿęƩêƎĻĜŀƬĿĿĿƸŀŀňíĿăÓőƘŀƄĿûĿŀŀƋŀŀŀĿŬĿæĿŀŀƙçÛĿĺôĿŀĿĿĿÌĿĿĿŀĿŀ×ŀĮŀĶŀŀğšŠŞĿčĕƕÙĿĿĿŀÓƧìì';
 const noise = new Int8Array(b256Noise.split('').map(c => c.charCodeAt(0) - 192));
 
-function GenerateWhiteNoise(Len: number) {
-  return noise.slice(0, Len);
+function GenerateWhiteNoise(length: number) {
+  return new Int8Array(noise.buffer, 0, length);
 }
 
 function Filter(input: Int8Array, fre: number): [low: Int8Array, high: Int8Array] {
@@ -459,20 +459,19 @@ function Filter(input: Int8Array, fre: number): [low: Int8Array, high: Int8Array
   return [outputLow, outputHigh];
 }
 
-const flat = (arrs: Int8Array[]) =>
-  Int8Array.from(arrs.reduce((a, b) => [...a, ...b], new Int8Array()));
-
 function GenerateFilterWaveforms(filterSets: AHXWaves) {
   const src = filterSets[31];
   let freq = 8;
   for (let set = 0; set < 31; set++) {
     const fre = (freq * 1.25) / 100.0;
     // Filter all squares individually
-    const dstLowSquares = Array.from<Int8Array>({ length: 0x20 });
-    const dstHighSquares = Array.from<Int8Array>({ length: 0x20 });
-    for (let i = 0; i < 0x20; i++) {
-      const square = src[Waveform.SQUARE].slice(i * 0x80, (i + 1) * 0x80);
-      [dstLowSquares[i], dstHighSquares[i]] = Filter(square, fre);
+    const dstLowSquares = Int8Array.from({ length: 4096 });
+    const dstHighSquares = Int8Array.from({ length: 4096 });
+    for (let i = 0; i < 4096; i += 128) {
+      const square = new Int8Array(src[Waveform.SQUARE].buffer, i, 128);
+      const [low, high] = Filter(square, fre);
+      dstLowSquares.set(low, i);
+      dstHighSquares.set(high, i);
     }
 
     const [lowTri04, highTri04] = Filter(src[Waveform.TRIANGLE][0], fre);
@@ -493,14 +492,14 @@ function GenerateFilterWaveforms(filterSets: AHXWaves) {
       undefined,
       [lowTri04, lowTri08, lowTri10, lowTri20, lowTri40, lowTri80],
       [lowSaw04, lowSaw08, lowSaw10, lowSaw20, lowSaw40, lowSaw80],
-      flat(dstLowSquares),
+      dstLowSquares,
       lowWhiteNoiseBig,
     ];
     filterSets[set + 32] = [
       undefined,
       [highTri04, highTri08, highTri10, highTri20, highTri40, highTri80],
       [highSaw04, highSaw08, highSaw10, highSaw20, highSaw40, highSaw80],
-      flat(dstHighSquares),
+      dstHighSquares,
       highWhiteNoiseBig,
     ];
 
