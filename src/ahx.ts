@@ -286,7 +286,7 @@ export class AHXVoice {
   PlantSquare = 0;
   PlantPeriod = 0;
   IgnoreSquare = 0;
-  TrackOn = 1;
+  TrackOn = true;
   FixedNote = 0;
   VolumeSlideUp = 0;
   VolumeSlideDown = 0;
@@ -925,29 +925,28 @@ export class AHXPlayer {
     }
     if (voice.Waveform === Waveform.SQUARE && voice.SquareOn) {
       if (--voice.SquareWait <= 0) {
-        const d1 = voice.SquareLowerLimit;
-        const d2 = voice.SquareUpperLimit;
-        let d3 = voice.SquarePos;
         if (voice.SquareInit) {
           voice.SquareInit = 0;
-          if (d3 <= d1) {
+          if (voice.SquarePos <= voice.SquareLowerLimit) {
             voice.SquareSlidingIn = 1;
             voice.SquareSign = 1;
-          } else if (d3 >= d2) {
+          } else if (voice.SquarePos >= voice.SquareUpperLimit) {
             voice.SquareSlidingIn = 1;
             voice.SquareSign = -1;
           }
         }
         //NoSquareInit
-        if (d1 === d3 || d2 === d3) {
+        if (
+          voice.SquareLowerLimit === voice.SquarePos ||
+          voice.SquareUpperLimit === voice.SquarePos
+        ) {
           if (voice.SquareSlidingIn) {
             voice.SquareSlidingIn = 0;
           } else {
             voice.SquareSign = -voice.SquareSign;
           }
         }
-        d3 += voice.SquareSign;
-        voice.SquarePos = d3;
+        voice.SquarePos += voice.SquareSign;
         voice.PlantSquare = 1;
         voice.SquareWait = voice.Instrument.SquareSpeed;
       }
@@ -1005,10 +1004,9 @@ export class AHXPlayer {
       voice.Waveform = Waveform.SQUARE;
       voice.PlantSquare = 0;
     }
-    if (voice.Waveform === Waveform.WNOISE)
-      // white noise
+    if (voice.Waveform === Waveform.WNOISE) {
       voice.NewWaveform = true;
-
+    }
     if (voice.NewWaveform) {
       if (voice.Waveform !== Waveform.SQUARE) {
         // don't process square
@@ -1087,7 +1085,9 @@ export class AHXPlayer {
           if (voice.IgnoreFilter) {
             voice.FilterPos = voice.IgnoreFilter;
             voice.IgnoreFilter = 0;
-          } else voice.FilterPos = FXParam;
+          } else {
+            voice.FilterPos = FXParam;
+          }
           voice.NewWaveform = true;
         }
         break;
@@ -1100,9 +1100,11 @@ export class AHXPlayer {
         voice.PeriodPerfSlideOn = 1;
         break;
       case 3: // Init Square Modulation
-        if (!voice.IgnoreSquare) {
+        if (voice.IgnoreSquare) {
+          voice.IgnoreSquare = 0;
+        } else {
           voice.SquarePos = FXParam >> (5 - voice.WaveLength);
-        } else voice.IgnoreSquare = 0;
+        }
         break;
       case 4: // Start/Stop Modulation
         if (this.Song.Revision === 0 || FXParam === 0) {
@@ -1124,7 +1126,8 @@ export class AHXPlayer {
         break;
       case 6: // Set Volume
         if (FXParam > 0x40) {
-          if ((FXParam -= 0x50) >= 0) {
+          FXParam -= 0x50;
+          if (FXParam >= 0) {
             if (FXParam <= 0x40) voice.PerfSubVolume = FXParam;
             else if ((FXParam -= 0xa0 - 0x50) >= 0)
               if (FXParam <= 0x40) voice.TrackMasterVolume = FXParam;
@@ -1137,9 +1140,8 @@ export class AHXPlayer {
     }
   }
 
-  VoiceOnOff(Voice: number, OnOff: number) {
-    if (Voice < 0 || Voice > 3) return;
-    this.Voices[Voice].TrackOn = OnOff;
+  VoiceOnOff(Voice: 0 | 1 | 2 | 3, enabled: boolean) {
+    this.Voices[Voice].TrackOn = enabled;
   }
 }
 
