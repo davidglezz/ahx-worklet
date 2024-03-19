@@ -8,6 +8,8 @@ export interface AHXEnvelope {
   rVolume: number;
 }
 
+type WaveLength = 0 | 1 | 2 | 3 | 4 | 5; // 0 = 0x4, 1 = 0x8, 2 = 0x10, 3 = 0x20, 4 = 0x40, 5 = 0x80
+
 export interface AHXPlistEntry {
   Note: number;
   Fixed: number;
@@ -19,7 +21,7 @@ export interface AHXPlistEntry {
 export interface AHXInstrument {
   Name: string;
   Volume: number;
-  WaveLength: number;
+  WaveLength: WaveLength;
   Envelope: AHXEnvelope;
   FilterLowerLimit: number;
   FilterUpperLimit: number;
@@ -206,7 +208,7 @@ export class AHXSong {
       const Instrument: AHXInstrument = {
         Name: readString(view, NamePtr),
         Volume: view.getUint8(SBPtr + 0),
-        WaveLength: view.getUint8(SBPtr + 1) & 0x7,
+        WaveLength: (view.getUint8(SBPtr + 1) & 0x7) as WaveLength,
         Envelope: {
           aFrames: view.getUint8(SBPtr + 2),
           aVolume: view.getUint8(SBPtr + 3),
@@ -327,7 +329,7 @@ export class AHXVoice {
   PerfCurrent = 0;
   PerfSpeed = 0;
   PerfWait = 0;
-  WaveLength = 0;
+  WaveLength: WaveLength = 0;
   PerfList!: AHXPlistEntry[];
   NoteDelayWait = 0;
   NoteDelayOn = 0;
@@ -714,21 +716,20 @@ export class AHXPlayer {
       //InitFilter
       voice.IgnoreFilter = voice.FilterWait = voice.FilterOn = 0;
       voice.FilterSlidingIn = 0;
-      let d6 = voice.Instrument.FilterSpeed;
-      let d3 = voice.Instrument.FilterLowerLimit;
-      let d4 = voice.Instrument.FilterUpperLimit;
-      if (d3 & 0x80) d6 |= 0x20;
-      if (d4 & 0x80) d6 |= 0x40;
-      voice.FilterSpeed = d6;
-      d3 &= ~0x80;
-      d4 &= ~0x80;
-      if (d3 > d4) {
-        const t = d3;
-        d3 = d4;
-        d4 = t;
+      voice.FilterSpeed = voice.Instrument.FilterSpeed;
+      let FilterLower = voice.Instrument.FilterLowerLimit;
+      let FilterUpper = voice.Instrument.FilterUpperLimit;
+      if (FilterLower & 0x80) voice.FilterSpeed |= 0x20;
+      if (FilterUpper & 0x80) voice.FilterSpeed |= 0x40;
+      FilterLower &= ~0x80;
+      FilterUpper &= ~0x80;
+      if (FilterLower > FilterUpper) {
+        const t = FilterLower;
+        FilterLower = FilterUpper;
+        FilterUpper = t;
       }
-      voice.FilterUpperLimit = d4;
-      voice.FilterLowerLimit = d3;
+      voice.FilterUpperLimit = FilterUpper;
+      voice.FilterLowerLimit = FilterLower;
       voice.FilterPos = 32;
       //Init PerfList
       voice.PerfWait = voice.PerfCurrent = 0;
@@ -1063,7 +1064,7 @@ export class AHXPlayer {
         voice.VoiceBuffer.set(voice.AudioSource, 0);
       } else {
         const WaveLoops = (1 << (5 - voice.WaveLength)) * 5;
-        const LoopLen = 4 * (1 << voice.WaveLength);
+        const LoopLen = 4 << voice.WaveLength;
         const Samples = WaveLoops * LoopLen;
         if (!voice.AudioSource.length) {
           voice.VoiceBuffer.fill(0, 0, Samples);
