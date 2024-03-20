@@ -103,6 +103,8 @@ async function play(songName: string) {
   if (!songName) {
     return;
   }
+  parts.songlist.querySelector('.active')?.classList.remove('active');
+  parts.songlist.querySelector(`[href="#${songName}"]`)?.classList.add('active');
   const url = `https://modland.com/pub/modules/AHX/${songName}.ahx`;
   const songData = await loadBinary(url);
   await ahxNode.load(songData);

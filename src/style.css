@@ -197,6 +197,11 @@ button {
       &:active {
         border-color: var(--primary);
       }
+
+      &.active {
+        background-color: #1a1a1a;
+        color: var(--primary);
+      }
     }
   }
 }
