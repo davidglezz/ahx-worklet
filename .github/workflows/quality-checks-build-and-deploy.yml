@@ -1,4 +1,4 @@
-name: Pull Request
+name: Quality checks, build and deploy
 
 on:
   push:
