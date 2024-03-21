@@ -19,6 +19,7 @@ export default defineConfig({
   build: {
     target: 'esnext',
   },
+  base: '/ahx-worklet/',
   resolve: {
     alias: [
       {
@@ -28,3 +29,5 @@ export default defineConfig({
     ],
   },
 });
+
+// '/<REPO>/'

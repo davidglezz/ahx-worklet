@@ -44,19 +44,8 @@ jobs:
       - name: Unit test
         run: npm run test
 
-      - name: Setup Pages
-        if: github.event_name != 'pull_request'
-        uses: actions/configure-pages@v4
-
       - name: Build
         run: npm run build
-
-      - name: Fix permissions
-        if: github.event_name != 'pull_request'
-        run: |
-          chmod -c -R +rX "dist/" | while read line; do
-            echo "::warning title=Invalid file permissions automatically fixed::$line"
-          done
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -81,9 +70,6 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Wait a bit before deploying
-        run: sleep 2
-
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
         id: deployment
