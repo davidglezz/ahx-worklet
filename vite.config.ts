@@ -16,6 +16,9 @@ export default defineConfig({
     },
     reporters: ['default'],
   },
+  build: {
+    target: 'esnext',
+  },
   resolve: {
     alias: [
       {
