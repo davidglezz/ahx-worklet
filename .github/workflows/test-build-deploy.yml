@@ -44,10 +44,15 @@ jobs:
       - name: Unit test
         run: npm run test
 
+      - name: Setup Pages
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@v4
+
       - name: Build
         run: npm run build
 
       - name: Fix permissions
+        if: github.event_name != 'pull_request'
         run: |
           chmod -c -R +rX "dist/" | while read line; do
             echo "::warning title=Invalid file permissions automatically fixed::$line"
@@ -66,6 +71,7 @@ jobs:
 
     # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
     permissions:
+      contents: read
       pages: write # to deploy to Pages
       id-token: write # to verify the deployment originates from an appropriate source
 
@@ -75,9 +81,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Sleep for 30 seconds
-        run: sleep 30
+      - name: Wait a bit before deploying
+        run: sleep 2
 
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/deploy-pages@v4
+        id: deployment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
