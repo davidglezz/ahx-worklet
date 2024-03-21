@@ -1,6 +1,6 @@
 import './style.css';
 import { AHXNode } from './ahx-node.ts';
-import AHXProcessor from './ahx-worklet.ts?url';
+import AHXProcessor from './ahx-worklet.ts?worker&url';
 import type { PositionEvent } from './types.ts';
 import { visualize } from './utils.ts';
 
