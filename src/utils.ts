@@ -48,6 +48,7 @@ export function visualize(
 
   const setup = {
     sinewave() {
+      const color = getComputedStyle(document.body).getPropertyValue('--fg-color');
       analyser.fftSize = 512;
       const bufferLength = analyser.fftSize;
       const dataArray = new Uint8Array(bufferLength);
@@ -56,7 +57,7 @@ export function visualize(
         analyser.getByteTimeDomainData(dataArray);
         canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
         canvasCtx.lineWidth = 2;
-        canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
+        canvasCtx.strokeStyle = color;
         canvasCtx.beginPath();
         const sliceWidth = WIDTH / bufferLength;
         canvasCtx.moveTo(0, HEIGHT / 2);
@@ -70,6 +71,8 @@ export function visualize(
       draw();
     },
     frequencybars() {
+      const color = getComputedStyle(document.body).getPropertyValue('--fg-color');
+      const [, r, g, b] = color.split(/[^\d\.]+/g);
       analyser.fftSize = 128;
       const bufferLength = analyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
@@ -80,7 +83,7 @@ export function visualize(
         canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
         for (let i = 0; i < bufferLength; i++) {
           const v = easeInOutQuad(dataArray[i] / 255);
-          canvasCtx.fillStyle = `rgba(255, 255, 255, ${v})`;
+          canvasCtx.fillStyle = `rgba(${r}, ${g}, ${b}, ${v})`;
           const barHeight = v * HEIGHT;
           canvasCtx.fillRect(i * barWidth, HEIGHT - barHeight, barWidth - 1, barHeight);
         }

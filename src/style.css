@@ -1,13 +1,18 @@
 :root {
   --primary: #646cff;
+  --bg-color: #242424;
+  --bg-active: #1a1a1a;
+  --fg-color: rgba(255, 255, 255, 0.8);
+  --shadow-color: #000;
+
   box-sizing: border-box;
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color: var(--fg-color);
+  background-color: var(--bg-color);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -15,6 +20,16 @@
   -moz-osx-font-smoothing: grayscale;
 
   accent-color: var(--primary);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --primary: #646cff;
+    --bg-color: #f9f9f9;
+    --bg-active: #dcdcdc;
+    --fg-color: rgba(0, 0, 0, 0.8);
+    --shadow-color: #fff;
+  }
 }
 
 * {
@@ -30,11 +45,7 @@ a {
 }
 
 a:hover {
-  color: #535bf2;
-}
-
-a:target {
-  color: #ffeb91;
+  color: inherit;
 }
 
 body {
@@ -52,7 +63,7 @@ h1 {
   text-align: center;
   margin-top: -2rem;
   pointer-events: none;
-  text-shadow: 0 0 2px black;
+  text-shadow: 0 0 0.125rem var(--shadow-color);
 }
 
 .flex-col {
@@ -80,13 +91,13 @@ h1 {
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  border: 0.0625rem solid transparent;
   padding: 0.5em 1em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--bg-active);
   cursor: pointer;
   transition: border-color 0.25s;
 
@@ -97,7 +108,7 @@ button {
   &:focus,
   &:focus-visible {
     outline: none;
-    box-shadow: inset 0 0 0 2px var(--primary);
+    box-shadow: inset 0 0 0 0.125rem var(--primary);
   }
 
   &.btn-icon {
@@ -105,7 +116,7 @@ button {
     aspect-ratio: 1;
     line-height: 1;
     fill: currentColor;
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--fg-color);
     padding: 1rem;
     border-radius: 99rem;
 
@@ -116,29 +127,15 @@ button {
   }
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-
-  a:hover {
-    color: #747bff;
-  }
-
-  button {
-    background-color: #f9f9f9;
-  }
-}
-
 .controls {
   display: flex;
+  flex: 0 0 auto;
   gap: 1rem;
   padding: 0 0.5rem;
 
   white-space: nowrap;
   text-overflow: ellipsis;
-  overflow: clip;
+  overflow: hidden;
 
   input,
   label {
@@ -172,8 +169,8 @@ button {
     padding: 0.5rem 1rem;
     margin: 0.25rem 0;
     border-radius: 0.5rem;
-    background-color: #1a1a1a;
-    box-shadow: 0 0 0 0.25rem #242424;
+    background-color: var(--bg-active);
+    box-shadow: 0 0 0 0.25rem var(--bg-color);
   }
 
   li {
@@ -181,7 +178,7 @@ button {
 
     a {
       border-radius: 0.5rem;
-      border: 1px solid transparent;
+      border: 0.0625rem solid transparent;
       cursor: pointer;
       display: block;
       padding: 0.5rem 1rem;
@@ -191,7 +188,7 @@ button {
       transition: background-color 0.2s;
 
       &:hover {
-        background-color: #1a1a1a;
+        background-color: var(--bg-active);
       }
 
       &:active {
@@ -199,7 +196,7 @@ button {
       }
 
       &.active {
-        background-color: #1a1a1a;
+        background-color: var(--bg-active);
         color: var(--primary);
       }
     }
