@@ -11,8 +11,6 @@ export default antfu(
       // Prettier incompatibility
       'unicorn/number-literal-case': 'off',
       'node/prefer-global/buffer': 'off',
-      // Temporary
-      'no-cond-assign': 'off',
     },
   },
   {

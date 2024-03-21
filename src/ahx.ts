@@ -1141,11 +1141,18 @@ export class AHXPlayer {
         if (FXParam > 0x40) {
           FXParam -= 0x50;
           if (FXParam >= 0) {
-            if (FXParam <= 0x40) voice.PerfSubVolume = FXParam;
-            else if ((FXParam -= 0xa0 - 0x50) >= 0)
-              if (FXParam <= 0x40) voice.TrackMasterVolume = FXParam;
+            if (FXParam <= 0x40) {
+              voice.PerfSubVolume = FXParam;
+            } else {
+              FXParam -= 0xa0 - 0x50;
+              if (FXParam >= 0 && FXParam <= 0x40) {
+                voice.TrackMasterVolume = FXParam;
+              }
+            }
           }
-        } else voice.NoteMaxVolume = FXParam;
+        } else {
+          voice.NoteMaxVolume = FXParam;
+        }
         break;
       case 7: // Set speed aka 'F' (param $00-$FF valid)
         voice.PerfSpeed = voice.PerfWait = FXParam;
