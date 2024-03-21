@@ -12,6 +12,7 @@ class AHXProcessor extends AudioWorkletProcessor implements AudioWorkletProcesso
 
   constructor() {
     super();
+    // @ts-expect-error - TODO
     this.port.onmessage = ({ data }: MessageEvent<MessageToWorklet>) => this[data.id]?.(data);
   }
 

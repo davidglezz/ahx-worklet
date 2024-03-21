@@ -6,6 +6,7 @@ import {
   AHXOutput as ReferenceOutput,
   AHXSong as ReferenceSong,
   AHXWaves as ReferenceWaves,
+  // @ts-expect-error - no types
 } from './ahx.reference-implementation.js';
 import { AHXOutput, AHXSong, Waveform, getAHXWaves } from './ahx.ts';
 import { dump, toArrayBuffer } from './utils.ts';

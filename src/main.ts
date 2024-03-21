@@ -93,7 +93,7 @@ async function start(context = new AudioContext()) {
       parts.position.step = String(1 / songInfo.Positions.length);
       console.log(songInfo); // eslint-disable-line no-console
     },
-    stats: console.log, // eslint-disable-line no-console
+    log: ({ severity, message }) => console[severity](message), // eslint-disable-line no-console
   });
   ahxNode.connect(visualizer.node);
   return context;
@@ -123,28 +123,31 @@ async function displaySongList() {
   const list = document.querySelector<HTMLDListElement>('#songlist')!;
   const songs = (await loadSongList()).map(fileName => {
     const [author, ...titleParts] = fileName.split('/');
-    return { author, title: titleParts.join('/'), fileName };
+    return { author, title: titleParts.join('/'), fileName } as const;
   });
-  Object.entries(Object.groupBy(songs, s => s.author)).forEach(([author, songs]) => {
-    const section = document.createElement('section');
-    list.appendChild(section);
+  type Song = (typeof songs)[number];
+  Object.entries(Object.groupBy(songs, (s: Song) => s.author)).forEach(
+    ([author, songs]: [string, Song[] | undefined]) => {
+      const section = document.createElement('section');
+      list.appendChild(section);
 
-    const title = document.createElement('h3');
-    title.textContent = author;
-    section.appendChild(title);
+      const title = document.createElement('h3');
+      title.textContent = author;
+      section.appendChild(title);
 
-    const ul = document.createElement('ul');
-    section.appendChild(ul);
-    songs.forEach(({ title, fileName }) => {
-      const li = document.createElement('li');
-      ul.appendChild(li);
-      const a = document.createElement('a');
-      a.dataset.song = fileName;
-      a.textContent = title;
-      a.href = `#${encodeURIComponent(fileName)}`;
-      li.appendChild(a);
-    });
-  });
+      const ul = document.createElement('ul');
+      section.appendChild(ul);
+      songs?.forEach(({ title, fileName }) => {
+        const li = document.createElement('li');
+        ul.appendChild(li);
+        const a = document.createElement('a');
+        a.dataset.song = fileName;
+        a.textContent = title;
+        a.href = `#${encodeURIComponent(fileName)}`;
+        li.appendChild(a);
+      });
+    },
+  );
 }
 
 displaySongList();

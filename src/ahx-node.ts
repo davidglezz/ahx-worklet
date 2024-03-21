@@ -14,6 +14,7 @@ export class AHXNode extends AudioWorkletNode {
     });
     this.eventListeners = eventListeners;
     this.port.onmessage = ({ data }: MessageEvent<MessageToNode>) =>
+      // @ts-expect-error - TODO
       this.eventListeners[data.id]?.(data);
   }
 
