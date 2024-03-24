@@ -76,7 +76,7 @@ export class AudioPlayer extends EventTarget {
 
   async load(url: string) {
     const songData = await this.download(url);
-    await this.playerNode?.load(songData);
+    await this.playerNode.load(songData);
   }
 
   setPosition(value: number) {

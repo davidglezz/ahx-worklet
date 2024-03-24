@@ -23,7 +23,11 @@ const player = new AudioPlayer();
 const visualizer = new AudioVisualizer(player.context, parts.visualizer, 'sinewave');
 
 player.on('log', ({ severity, message }: LogEvent) => console[severity](message)); // eslint-disable-line no-console
-player.on('ready', () => player.connectVisualizer(visualizer.getNode()));
+player.on('ready', async () => {
+  player.connectVisualizer(visualizer.getNode());
+  await displaySongList();
+  load(location.hash.slice(1));
+});
 player.on('position', e => (parts.position.value = String(e.value)));
 player.on('statechange', audioCtx => {
   parts.play.innerHTML = icons[audioCtx.state === 'running' ? 'stop' : 'play'];
@@ -44,9 +48,6 @@ parts.position.oninput = event => {
   player.setPosition(Number((event.target as HTMLInputElement).value));
 };
 window.onhashchange = () => play(location.hash.slice(1));
-
-await displaySongList();
-load(location.hash.slice(1));
 
 async function load(songName: string) {
   if (!songName) {
