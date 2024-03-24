@@ -1,9 +1,31 @@
 import { AHXOutput, AHXPlayer, AHXSong } from './ahx.ts';
-import type { LoadEvent, MessageToWorklet, PositionEvent } from './types.ts';
 
 /// <reference types="@types/audioworklet" />
 
-class AHXProcessor extends AudioWorkletProcessor implements AudioWorkletProcessorImpl {
+/** Types to define the comunication between the AudioWorklet and the Node. */
+export interface InputMessagesMap {
+  load: { songData: ArrayBuffer };
+  setPosition: { value: number };
+}
+
+export interface OutputMessagesMap {
+  songInfo: { songInfo: AHXSong };
+  position: { value: number };
+  log: { severity: 'info' | 'warn' | 'error'; message: string };
+}
+
+type Id<T extends object, R = { [ID in keyof T]: { id: ID } & T[ID] }[keyof T]> = NonNullable<{
+  [P in keyof R]: R[P];
+}>;
+export type InputMessages = Id<InputMessagesMap>;
+export type OutputMessages = Id<OutputMessagesMap>;
+
+type MessageHandler<T = InputMessagesMap> = { [ID in keyof T]: (params: T[ID]) => void };
+
+class AHXProcessor
+  extends AudioWorkletProcessor
+  implements AudioWorkletProcessorImpl, MessageHandler
+{
   Output: AHXOutput = new AHXOutput(new AHXPlayer(), sampleRate, 16);
 
   bufferFull = 0;
@@ -12,8 +34,11 @@ class AHXProcessor extends AudioWorkletProcessor implements AudioWorkletProcesso
 
   constructor() {
     super();
-    // @ts-expect-error - TODO
-    this.port.onmessage = ({ data }: MessageEvent<MessageToWorklet>) => this[data.id]?.(data);
+    this.port.onmessage = (ev: MessageEvent<InputMessages>) => {
+      const { id, ...params } = ev.data;
+      // @ts-expect-error - Params depends on the message id
+      this[id]?.(params);
+    };
   }
 
   process(_input: never, outputs: Float32Array[][], _params: never): boolean {
@@ -48,28 +73,20 @@ class AHXProcessor extends AudioWorkletProcessor implements AudioWorkletProcesso
       this.currentPosition = this.Output.Player.PosNr;
     }
 
-    /*this.port.postMessage({
-        id: 'stats',
-        pos: `${this.Output.Player.PosNr} / ${this.Output.Player.Song.Positions.length}`,
-        time: this.Output.Player.PlayingTime,
-        songEndReached: this.Output.Player.SongEndReached,
-    });*/
-
     return true;
   }
 
-  position({ value }: PositionEvent) {
+  setPosition({ value }: InputMessagesMap['setPosition']) {
+    const PosNr = this.Output.Player.Song?.Positions.length;
+    if (!PosNr) return;
     this.Output.pos = [0, 0, 0, 0];
     this.bufferFull = 0;
-    this.currentPosition = Math.floor(value * this.Output.Player.Song.Positions.length);
+    this.currentPosition = Math.floor(value * PosNr);
     this.Output.Player.SetPosition(this.currentPosition);
-    /*this.port.postMessage({
-      id: 'position',
-      value: this.Output.Player.PosNr / this.Output.Player.Song.Positions.length,
-    });*/
+    //this.port.postMessage({ id: 'position', value: this.Output.Player.PosNr / PosNr });
   }
 
-  load({ songData }: LoadEvent) {
+  load({ songData }: InputMessagesMap['load']) {
     const song = new AHXSong(songData);
     this.Output.Player.InitSong(song);
     this.currentPosition = this.Output.Player.PosNr;

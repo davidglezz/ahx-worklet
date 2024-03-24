@@ -5,9 +5,25 @@
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AHX worklet</title>
+    <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <canvas id="visualizer" width="640" height="96"></canvas>
+      <h1>AHX worklet</h1>
+      <div class="controls">
+        <button id="play" class="btn-icon" type="button"></button>
+        <div class="position flex-col flex-fill">
+          <label for="position">-</label>
+          <input id="position" type="range" min="0.0" max="1.0" step="0.01" value="0" />
+        </div>
+        <div class="volume flex-col">
+          <label for="volume">100%</label>
+          <input id="volume" type="range" min="0.0" max="1.0" step="0.01" value="1.0" />
+        </div>
+      </div>
+      <div class="list" id="songlist"></div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
