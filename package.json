@@ -18,17 +18,17 @@
     "bench": "vitest bench"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^2.8.3",
-    "@types/audioworklet": "^0.0.54",
-    "@types/node": "^20.11.30",
-    "@vitest/coverage-v8": "^1.4.0",
+    "@antfu/eslint-config": "^2.21.1",
+    "@types/audioworklet": "^0.0.55",
+    "@types/node": "^20.14.8",
+    "@vitest/coverage-v8": "^1.6.0",
     "eslint": "^8.57.0",
-    "lint-staged": "^15.2.2",
-    "prettier": "^3.2.5",
-    "simple-git-hooks": "^2.11.0",
-    "typescript": "^5.4.3",
-    "vite": "^5.2.2",
-    "vitest": "^1.4.0"
+    "lint-staged": "^15.2.7",
+    "prettier": "^3.3.2",
+    "simple-git-hooks": "^2.11.1",
+    "typescript": "^5.5.2",
+    "vite": "^5.3.1",
+    "vitest": "^1.6.0"
   },
   "simple-git-hooks": {
     "commit-msg": "npx --no -- commitlint --edit",
