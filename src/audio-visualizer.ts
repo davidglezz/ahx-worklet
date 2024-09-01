@@ -55,7 +55,7 @@ export class AudioVisualizer {
     cancelAnimationFrame(this.rafHandle);
     this.activeVisualizer = 'frequencybars';
     const color = getComputedStyle(document.body).getPropertyValue('--fg-color');
-    const [, r, g, b] = color.split(/[^\d\.]+/g);
+    const [, r, g, b] = color.split(/[^\d.]+/g);
     this.analyser.fftSize = 128;
     const bufferLength = this.analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
