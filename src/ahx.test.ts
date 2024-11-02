@@ -1,5 +1,5 @@
-import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { beforeAll, describe, expect, it } from 'vitest';
 import {
   dataType as DataType,
@@ -8,7 +8,7 @@ import {
   AHXWaves as ReferenceWaves,
   // @ts-expect-error - no types
 } from './ahx.reference-implementation.js';
-import { AHXOutput, AHXSong, Waveform, getAHXWaves } from './ahx.ts';
+import { AHXOutput, AHXSong, getAHXWaves, Waveform } from './ahx.ts';
 import { dump, toArrayBuffer } from './utils.ts';
 
 describe('test AHX', () => {

@@ -1,6 +1,6 @@
+import type { AHXSong } from './ahx.ts';
 import { AHXNode } from './ahx-node.ts';
 import AHXProcessor from './ahx-worklet.ts?worker&url';
-import type { AHXSong } from './ahx.ts';
 
 export interface EventMap {
   statechange: AudioContext;
